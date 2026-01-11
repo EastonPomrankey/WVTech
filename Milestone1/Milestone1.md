@@ -19,6 +19,6 @@ REPLACE WITH LINKS TO RESUMES
 Add description for meal planner
 ### Reversed Job Postings
 Add description for reversed job posting
-### Programming Resources Website
-Add description for programming resources website
+### Product development dashboard
+A website to easily create dashboards for the development of products and aggregate information and opinions about the product domain to provide new insights. An example target user would be a game developer, who would want to gain insight into what game genres are popular. 
 
