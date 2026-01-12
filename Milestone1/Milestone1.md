@@ -13,7 +13,8 @@ Saturday 7:00 PM - 8:30 PM
 [Business Card](./Group_Materials/WVTech_Business_Card.png)<br>
 [Letterhead](./Group_Materials/WVTech_Letterhead.png)<br>
 ## Resumes
-[Cooper](./Resumes/Cooper.docx)<br>
+[Cooper](./Resumes/Cooper_Resume.docx)<br>
+[Aidan](./Resumes/Aidan_Resume.docx)<br>
 ## Project Ideas
 ### Meal Planner
 Add description for meal planner
