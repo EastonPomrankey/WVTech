@@ -3,7 +3,7 @@
 #### *From the Valley to the Web*
 
 ## Contributers
-**Natalie Perez, Cooper, Easton Pomrankey, Aidan Hazzard**
+**Natalie Perez, Cooper Derville-Teer, Easton Pomrankey, Aidan Hazzard**
 
 ## Meeting Times
 Thursday 11:00 AM - 3:30 PM<br>
@@ -13,12 +13,15 @@ Saturday 7:00 PM - 8:30 PM
 [Business Card](./Group_Materials/WVTech_Business_Card.png)<br>
 [Letterhead](./Group_Materials/WVTech_Letterhead.png)<br>
 ## Resumes
-REPLACE WITH LINKS TO RESUMES
+[Cooper](./Resumes/Cooper_Resume.docx)<br>
+[Aidan](./Resumes/Aidan_Resume.docx)<br>
 ## Project Ideas
 ### Meal Planner
 Add description for meal planner
 ### Reversed Job Postings
 Add description for reversed job posting
-### Programming Resources Website
-Add description for programming resources website
+### Product development dashboard
+A website to easily create dashboards for the development of products and aggregate information and opinions about the product domain to provide new insights. An example target user would be a game developer, who would want to gain insight into what game genres are popular. Or a bike shop, who would like to know what mountain bike parts are being shared around on social media.
 
+Possible APIs: Finnhub Stock API, Bluesky, Graph API (Facebook),
+Steam Web API, Overpass API (OpenStreetMaps), Associated Press? Maybe if we ask nicely
