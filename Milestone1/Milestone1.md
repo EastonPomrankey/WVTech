@@ -21,5 +21,7 @@ Add description for meal planner
 ### Reversed Job Postings
 Add description for reversed job posting
 ### Product development dashboard
-A website to easily create dashboards for the development of products and aggregate information and opinions about the product domain to provide new insights. An example target user would be a game developer, who would want to gain insight into what game genres are popular. 
+A website to easily create dashboards for the development of products and aggregate information and opinions about the product domain to provide new insights. An example target user would be a game developer, who would want to gain insight into what game genres are popular. Or a bike shop, who would like to know what mountain bike parts are being shared around on social media.
 
+Possible APIs: Finnhub Stock API, Bluesky, Graph API (Facebook),
+Steam Web API, Overpass API (OpenStreetMaps), Associated Press? Maybe if we ask nicely
