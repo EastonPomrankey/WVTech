@@ -16,3 +16,4 @@ Saturday 7:00 PM - 8:30 PM
 [Cooper](/team/cooper_derville-teer_resume.pdf)<br>
 [Aidan](/team/aidan_hazzard_resume.pdf)<br>
 [Easton](/team/easton_pomrankey_resume.pdf)<br>
+[Natalie](/team/natalie_perez_resume.pdf)
