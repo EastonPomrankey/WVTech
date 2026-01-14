@@ -1,6 +1,7 @@
 # Project Ideas
-## Meal Planner
-Add description for meal planner
+## Meal Planner & Recipe Finder
+This project idea is a meal planner combined with a recipe finder. This will be built using ASP.NET Core MVC. The purpose is that users will be able to create an account using an email, search and save different recipes as well as create their own, and then plan their meals on a calendar. Other features can include downloading recipes as a pdf document if one wants to print out the recipe. External APIs such as TheMealDB or Spoonacular will be used to find recipes, ingredients, and nutritional facts. The user, when planning their meals, can assign to specific days, are able to repeat meals, and are able to create a grocery list based on meals if they would like. An idea for the algorithmic component would be meal recommendations on top of finding recipes on their own. And with the recommendations, the user can set up restrictions – diet type, macro tracker/goals, budget, etc. 
+
 ## Flipd
 ### Product Overview
 Flipd is an employee search site that allows employers to look for highly qualified employees to fill positions. People looking for a job can add their resume, image, skills, etc. Employees will also have a post page that allows them to let others know what experiences they’ve had with employers and to ask and give advice. 
