@@ -9,7 +9,6 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 
 namespace MealPlanner.Controllers;
 
@@ -25,6 +24,7 @@ public class FoodEntriesController : Controller
     private readonly BlobContainerClient? _blobContainer;
     private readonly IWebHostEnvironment? _env;
     private readonly IShoppingListService? _shoppingListService;
+    private readonly IMeasurementRepository _measurementRepo;
 
     public FoodEntriesController(
         IRecipeRepository recipeRepository,
@@ -32,6 +32,7 @@ public class FoodEntriesController : Controller
         IUserRecipeRepository userRecipeRepository,
         MealPlannerDBContext context,
         IRegistrationService registrationService,
+        IMeasurementRepository measurementRepo,
         IWebHostEnvironment env,
         BlobContainerClient? blobContainer = null,
         IExternalRecipeService? externalRecipeService = null,
@@ -47,6 +48,7 @@ public class FoodEntriesController : Controller
         _externalRecipeService = externalRecipeService;
         _blobContainer = blobContainer;
         _env = env;
+        _measurementRepo = measurementRepo;
         _shoppingListService = shoppingListService;
     }
 
@@ -162,7 +164,7 @@ public class FoodEntriesController : Controller
         return View(new RecipeViewModel
         {
             AvailableTags = await _tagRepository.GetTagNamesAsync(),
-            Measurements = await _context.Set<Measurement>().Where(m => m.Abbreviation != "").OrderBy(m => m.SortOrder).ToListAsync()
+            Measurements = await _measurementRepo.GetAllOrderedAsync()
         });
     }
 
@@ -185,7 +187,7 @@ public class FoodEntriesController : Controller
         if (!ModelState.IsValid)
         {
             newRecipeViewModel.AvailableTags = await _tagRepository.GetTagNamesAsync();
-            newRecipeViewModel.Measurements = await _context.Set<Measurement>().Where(m => m.Abbreviation != "").OrderBy(m => m.SortOrder).ToListAsync();
+            newRecipeViewModel.Measurements = await _measurementRepo.GetAllOrderedAsync();
             return View("AddNewRecipe", newRecipeViewModel);
         }
 
@@ -240,7 +242,7 @@ public class FoodEntriesController : Controller
 
         RecipeViewModel viewModel = ViewModelService.RecipeToRecipeVM(recipe);
         viewModel.AvailableTags = await _tagRepository.GetTagNamesAsync();
-        viewModel.Measurements = await _context.Set<Measurement>().Where(m => m.Abbreviation != "").OrderBy(m => m.SortOrder).ToListAsync();
+        viewModel.Measurements = await _measurementRepo.GetAllOrderedAsync();
         return View("EditRecipe", viewModel);
     }
 
@@ -251,7 +253,7 @@ public class FoodEntriesController : Controller
         if (!ModelState.IsValid)
         {
             editedRecipeViewModel.AvailableTags = await _tagRepository.GetTagNamesAsync();
-            editedRecipeViewModel.Measurements = await _context.Set<Measurement>().Where(m => m.Abbreviation != "").OrderBy(m => m.SortOrder).ToListAsync();
+            editedRecipeViewModel.Measurements = await _measurementRepo.GetAllOrderedAsync();
             return View("EditRecipe", editedRecipeViewModel);
         }
 

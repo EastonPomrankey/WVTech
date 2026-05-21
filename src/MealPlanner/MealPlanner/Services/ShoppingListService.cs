@@ -147,6 +147,11 @@ public class ShoppingListService : IShoppingListService
         _shoppingListRepository.ClearAllItems(userId);
     }
 
+    public bool UpdateItemMeasurement(string userId, int itemId, int measurementId)
+    {
+        return _shoppingListRepository.UpdateMeasurementById(userId, itemId, measurementId);
+    }
+
     public IEnumerable<ShoppingListItem> GetItemsForUser(string userId)
     {
         return _shoppingListRepository.GetByUserId(userId);

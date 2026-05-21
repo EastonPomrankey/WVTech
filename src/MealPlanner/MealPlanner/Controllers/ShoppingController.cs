@@ -5,8 +5,6 @@ using MealPlanner.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace MealPlanner.Controllers;
 
@@ -18,6 +16,7 @@ public class ShoppingController : Controller
     private readonly UserManager<User> _userManager;
     private readonly IUserSettingsRepository _userSettingsRepo;
     private readonly IRegistrationService _registrationService;
+    private readonly IMeasurementRepository _measurementRepo;
     private readonly MealPlannerDBContext _context;
 
     public ShoppingController(
@@ -26,6 +25,7 @@ public class ShoppingController : Controller
         UserManager<User> userManager,
         IUserSettingsRepository userSettingsRepo,
         IRegistrationService registrationService,
+        IMeasurementRepository measurementRepo,
         MealPlannerDBContext context)
     {
         _shoppingListService = shoppingListService;
@@ -33,6 +33,7 @@ public class ShoppingController : Controller
         _userManager = userManager;
         _userSettingsRepo = userSettingsRepo;
         _registrationService = registrationService;
+        _measurementRepo = measurementRepo;
         _context = context;
     }
 
@@ -63,7 +64,7 @@ public class ShoppingController : Controller
 
         var items = _shoppingListService.GetItemsForUser(user.Id);
         var profile = await _userSettingsRepo.GetByUserIdAsync(user.Id);
-        var measurements = await _context.Set<Measurement>().Where(m => m.Abbreviation != "").OrderBy(m => m.SortOrder).ToListAsync();
+        var measurements = await _measurementRepo.GetAllOrderedAsync();
 
         return View(new ShoppingListViewModel
         {
@@ -111,10 +112,7 @@ public class ShoppingController : Controller
         await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, from, to);
 
         var items = _shoppingListService.GetItemsForUser(user.Id);
-        var measurements = await _context.Set<Measurement>()
-            .Where(m => m.Abbreviation != "")
-            .OrderBy(m => m.SortOrder)
-            .ToListAsync();
+        var measurements = await _measurementRepo.GetAllOrderedAsync();
 
         Response.Headers["Cache-Control"] = "no-store";
 
@@ -217,25 +215,9 @@ public class ShoppingController : Controller
         if (string.IsNullOrWhiteSpace(request.Measurement))
             return BadRequest("Measurement cannot be empty.");
 
-        var trimmed = request.Measurement.Trim();
-        var measurement = await _context.Set<Measurement>()
-            .FirstOrDefaultAsync(m =>
-                m.Abbreviation.ToLower() == trimmed.ToLower() ||
-                m.Name.ToLower() == trimmed.ToLower());
-
-        if (measurement == null)
-        {
-            measurement = new Measurement { Name = trimmed, Abbreviation = trimmed };
-            _context.Set<Measurement>().Add(measurement);
-            await _context.SaveChangesAsync();
-        }
-
-        var item = await _context.ShoppingListItems.FindAsync(request.ItemId);
-        if (item == null || item.UserId != user.Id)
-            return NotFound();
-
-        item.MeasurementId = measurement.Id;
-        await _context.SaveChangesAsync();
+        var measurement = await _measurementRepo.FindOrCreateByNameAsync(request.Measurement.Trim());
+        var updated = _shoppingListService.UpdateItemMeasurement(user.Id, request.ItemId, measurement.Id);
+        if (!updated) return NotFound();
 
         return Ok(new { abbreviation = measurement.Abbreviation });
     }

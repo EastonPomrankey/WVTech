@@ -71,6 +71,7 @@ public class ShoppingControllerTests
             _userManagerMock.Object,
             null!,
             _registrationServiceMock.Object,
+            Mock.Of<IMeasurementRepository>(),
             _context);
         _controller.ControllerContext = new ControllerContext
         {

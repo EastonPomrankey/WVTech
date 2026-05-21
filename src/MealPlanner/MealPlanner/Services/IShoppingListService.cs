@@ -12,4 +12,5 @@ public interface IShoppingListService
     void ClearItems(string userId);
     void UpdateItemAmount(string userId, int ingredientBaseId, float newAmount, string? displayAmount = null);
     Task SyncFromDateRangeAsync(string userId, User user, DateTime dateFrom, DateTime dateTo);
+    bool UpdateItemMeasurement(string userId, int itemId, int measurementId);
 }

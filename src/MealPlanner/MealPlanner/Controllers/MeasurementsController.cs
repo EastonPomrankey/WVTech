@@ -1,3 +1,4 @@
+using MealPlanner.DAL.Abstract;
 using MealPlanner.Models;
 using MealPlanner.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -9,17 +10,19 @@ namespace MealPlanner.Controllers;
 [Authorize(Roles = "Admin")]
 public class MeasurementsController : Controller
 {
+    private readonly IMeasurementRepository _measurementRepo;
     private readonly MealPlannerDBContext _context;
 
-    public MeasurementsController(MealPlannerDBContext context)
+    public MeasurementsController(IMeasurementRepository measurementRepo, MealPlannerDBContext context)
     {
+        _measurementRepo = measurementRepo;
         _context = context;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var measurements = await _context.Set<Measurement>().OrderBy(m => m.SortOrder).ToListAsync();
+        var measurements = await _measurementRepo.GetAllOrderedAsync();
         return View(measurements);
     }
 
@@ -36,16 +39,13 @@ public class MeasurementsController : Controller
         name = name.Trim();
         abbreviation = abbreviation.Trim();
 
-        bool exists = await _context.Set<Measurement>()
-            .AnyAsync(m => m.Name.ToLower() == name.ToLower());
-
-        if (exists)
+        if (await _measurementRepo.ExistsWithNameAsync(0, name))
         {
             TempData["Error"] = $"A measurement named \"{name}\" already exists.";
             return RedirectToAction(nameof(Index));
         }
 
-        _context.Set<Measurement>().Add(new Measurement { Name = name, Abbreviation = abbreviation });
+        _measurementRepo.CreateOrUpdate(new Measurement { Name = name, Abbreviation = abbreviation });
         await _context.SaveChangesAsync();
 
         TempData["Success"] = $"Measurement \"{name}\" added.";
@@ -62,17 +62,14 @@ public class MeasurementsController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var measurement = await _context.Set<Measurement>().FindAsync(id);
+        var measurement = (Measurement?)_measurementRepo.Read(id);
         if (measurement == null)
             return NotFound();
 
         name = name.Trim();
         abbreviation = abbreviation.Trim();
 
-        bool duplicate = await _context.Set<Measurement>()
-            .AnyAsync(m => m.Id != id && m.Name.ToLower() == name.ToLower());
-
-        if (duplicate)
+        if (await _measurementRepo.ExistsWithNameAsync(id, name))
         {
             TempData["Error"] = $"Another measurement named \"{name}\" already exists.";
             return RedirectToAction(nameof(Index));
@@ -82,7 +79,7 @@ public class MeasurementsController : Controller
         measurement.Abbreviation = abbreviation;
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = $"Measurement updated.";
+        TempData["Success"] = "Measurement updated.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -90,7 +87,7 @@ public class MeasurementsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var measurement = await _context.Set<Measurement>().FindAsync(id);
+        var measurement = (Measurement?)_measurementRepo.Read(id);
         if (measurement == null)
             return NotFound();
 
@@ -101,7 +98,7 @@ public class MeasurementsController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        _context.Set<Measurement>().Remove(measurement);
+        _measurementRepo.Delete(measurement);
         await _context.SaveChangesAsync();
 
         TempData["Success"] = $"Measurement \"{measurement.Name}\" deleted.";
