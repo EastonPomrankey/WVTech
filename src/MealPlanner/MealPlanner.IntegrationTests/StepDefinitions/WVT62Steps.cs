@@ -237,7 +237,7 @@ public class WVT62Steps
         });
         ((IJavaScriptExecutor)_driver).ExecuteScript("arguments[0].scrollIntoView(true);", btn);
         ((IJavaScriptExecutor)_driver).ExecuteScript("arguments[0].click();", btn);
-        _wait.Until(d => { try { _ = btn.TagName; return false; } catch (StaleElementReferenceException) { return true; } });
+        _wait.Until(d => { try { _ = btn.TagName; return false; } catch (StaleElementReferenceException) { return true; } catch (UnknownErrorException) { return true; } });
         _wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").ToString() == "complete");
     }
 
