@@ -4,6 +4,7 @@ using MealPlanner.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPlanner.Migrations
 {
     [DbContext(typeof(MealPlannerDBContext))]
-    partial class MealPlannerDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260520204116_AddDismissedShoppingItems")]
+    partial class AddDismissedShoppingItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -452,9 +455,6 @@ namespace MealPlanner.Migrations
 
                     b.Property<float>("Amount")
                         .HasColumnType("real");
-
-                    b.Property<string>("DisplayAmount")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("IngredientBaseId")
                         .HasColumnType("int");

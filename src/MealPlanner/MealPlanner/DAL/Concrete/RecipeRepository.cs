@@ -98,6 +98,9 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
                 }
                 catch (InvalidOperationException)
                 {
+                    if (string.IsNullOrEmpty(i.Measurement.Abbreviation))
+                        i.Measurement.Abbreviation = i.Measurement.Name;
+
                     var duplicate = !newMeasurements.Add(i.Measurement);
                     if (duplicate)
                     {

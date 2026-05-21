@@ -50,7 +50,7 @@ namespace MealPlanner.Tests
             {
                 Name = "Test Recipe",
                 Ingredients = ["sugar", "flour"],
-                IngredientAmounts = [1, 2],
+                IngredientAmounts = ["1", "2"],
                 IngredientMeasurements = ["cup", "cups"],
                 Directions = "Mix ingredients and bake 20 mins",
                 Calories = 0,
@@ -76,7 +76,7 @@ namespace MealPlanner.Tests
             {
                 Name = "Edited Test Recipe",
                 Ingredients = ["sugar", "candy"],
-                IngredientAmounts = [2, 2],
+                IngredientAmounts = ["2", "2"],
                 IngredientMeasurements = ["ounces", "cups"],
                 Directions = "Edited Mix ingredients and bake 20 mins",
                 Calories = 1,
@@ -111,7 +111,7 @@ namespace MealPlanner.Tests
             {
                 Name = "Edited Test Recipe",
                 Ingredients = ["sugar", "flour"],
-                IngredientAmounts = [1, 2],
+                IngredientAmounts = ["1", "2"],
                 IngredientMeasurements = ["cup", "cups"],
                 Directions = "Mix ingredients and bake 20 mins",
                 Calories = 1,

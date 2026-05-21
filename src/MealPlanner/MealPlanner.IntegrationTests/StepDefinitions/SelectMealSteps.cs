@@ -97,10 +97,22 @@ public class SelectMealSteps
     [Then("{string} does not see a meal named {string} in the select meal list")]
     public void ThenUserDoesNotSeeMeal(string username, string mealTitle)
     {
-        var names = _driver.FindElements(By.CssSelector(".selectMealName"))
+        new WebDriverWait(_driver, TimeSpan.FromSeconds(10)).Until(d =>
+        {
+            try
+            {
+                var names = d.FindElements(By.CssSelector(".selectMealName"))
+                    .Select(e => e.Text.Trim())
+                    .ToList();
+                return !names.Contains(mealTitle);
+            }
+            catch (StaleElementReferenceException) { return false; }
+        });
+
+        var finalNames = _driver.FindElements(By.CssSelector(".selectMealName"))
             .Select(e => e.Text.Trim())
             .ToList();
-        Assert.That(names, Does.Not.Contain(mealTitle));
+        Assert.That(finalNames, Does.Not.Contain(mealTitle));
     }
 
     [Then("{string} sees exactly {int} meal named {string} in the select meal list")]

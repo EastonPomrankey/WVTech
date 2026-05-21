@@ -248,7 +248,7 @@ public class MealRepositoryTests
                 {
                     DisplayName = "Lentils",
                     IngredientBase = new IngredientBase { Name = "zzz-lentil" },
-                    Measurement = new Measurement { Name = "zzz-cup" }
+                    Measurement = new Measurement { Name = "zzz-cup", Abbreviation = "zzz-cup" }
                 }
             ]
         };

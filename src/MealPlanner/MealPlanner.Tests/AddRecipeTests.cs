@@ -51,7 +51,7 @@ namespace MealPlanner.Tests
             {
                 Name = "Test Recipe",
                 Ingredients = ["sugar", "flour"],
-                IngredientAmounts = [1, 2],
+                IngredientAmounts = ["1", "2"],
                 IngredientMeasurements = ["cup", "cups"],
                 Directions = "Mix ingredients and bake 20 mins",
                 Calories = 0,
@@ -83,7 +83,7 @@ namespace MealPlanner.Tests
             {
                 Name = "Test Recipe",
                 Ingredients = ["sugar", "flour"],
-                IngredientAmounts = [1, 2],
+                IngredientAmounts = ["1", "2"],
                 IngredientMeasurements = ["cup", "cups"],
                 Directions = "Mix ingredients and bake 20 mins"
             };
@@ -102,7 +102,7 @@ namespace MealPlanner.Tests
             {
                 Name = "1Name",
                 Ingredients = ["1Entry1", "1Entry2"],
-                IngredientAmounts = [0, 0],
+                IngredientAmounts = ["0", "0"],
                 IngredientMeasurements = ["", ""],
                 Directions = "1Directions",
                 Calories = 0,
@@ -115,7 +115,7 @@ namespace MealPlanner.Tests
             {
                 Name = "2Name",
                 Ingredients = ["2Entry1", "2Entry2"],
-                IngredientAmounts = [0, 0],
+                IngredientAmounts = ["0", "0"],
                 IngredientMeasurements = ["", ""],
                 Directions = "2Directions",
                 Calories = 20,
