@@ -23,4 +23,6 @@ public interface IShoppingListRepository
     void DismissIngredientBase(string userId, int ingredientBaseId);
     void DismissBatch(string userId, IEnumerable<int> ingredientBaseIds);
     void UnDismiss(string userId, int ingredientBaseId);
+
+    bool UpdateMeasurementById(string userId, int itemId, int measurementId);
 }

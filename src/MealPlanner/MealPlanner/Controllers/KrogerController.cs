@@ -154,7 +154,7 @@ public class KrogerController : Controller
         }
 
         TempData["KrogerInfo"] = "Kroger account connected! Click Export to Kroger to add your items.";
-        return JsRedirect("/ShoppingList");
+        return JsRedirect("/Shopping");
     }
 
     private string? GetValidSessionToken()
