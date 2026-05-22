@@ -40,4 +40,7 @@ public class MeasurementRepository : Repository<Measurement>, IMeasurementReposi
         await _context.SaveChangesAsync();
         return measurement;
     }
+
+    public async Task<bool> IsInUseAsync(int id)
+        => await _context.Set<Ingredient>().AnyAsync(i => i.Measurement.Id == id);
 }

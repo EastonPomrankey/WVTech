@@ -316,14 +316,7 @@ public async Task<IActionResult> DeleteRecipe(int id)
 
     await Recipe.DeleteImageAsync(recipe.ImageUrl, _blobContainer, _env?.WebRootPath);
 
-    // Remove ingredients first
-    _context.Set<Ingredient>().RemoveRange(recipe.Ingredients);
-
-    // Remove user recipes
-    var userRecipes = _context.Set<UserRecipe>().Where(ur => ur.RecipeId == id);
-    _context.Set<UserRecipe>().RemoveRange(userRecipes);
-
-    _context.Recipes.Remove(recipe);
+    await _recipeRepository.DeleteWithDependenciesAsync(recipe);
     await _context.SaveChangesAsync();
 
     return Ok();

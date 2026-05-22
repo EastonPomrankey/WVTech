@@ -3,7 +3,6 @@ using MealPlanner.Models;
 using MealPlanner.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace MealPlanner.Controllers;
 
@@ -91,7 +90,7 @@ public class MeasurementsController : Controller
         if (measurement == null)
             return NotFound();
 
-        bool inUse = await _context.Set<Ingredient>().AnyAsync(i => i.Measurement.Id == id);
+        bool inUse = await _measurementRepo.IsInUseAsync(id);
         if (inUse)
         {
             TempData["Error"] = $"Cannot delete \"{measurement.Name}\" — it is used by one or more ingredients.";
