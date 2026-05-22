@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MealPlanner.Controllers;
 using MealPlanner.DAL.Abstract;
+using MealPlanner.DAL.Concrete;
 using MealPlanner.Models;
 using MealPlanner.Models.DTO;
 using MealPlanner.Services;
@@ -104,12 +105,19 @@ public class WVT177UpdateMeasurementTests
         _context.Users.Add(_user);
         _context.SaveChanges();
 
+        var shoppingListService = new ShoppingListService(
+            new ShoppingListRepository(_context),
+            Mock.Of<IMealRepository>(),
+            Mock.Of<IIngredientBaseRepository>(),
+            Mock.Of<IRepository<Measurement>>());
+
         _controller = new ShoppingController(
-            Mock.Of<IShoppingListService>(),
+            shoppingListService,
             Mock.Of<IPantryService>(),
             _userManagerMock.Object,
             null!,
             Mock.Of<IRegistrationService>(),
+            new MeasurementRepository(_context),
             _context);
 
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(

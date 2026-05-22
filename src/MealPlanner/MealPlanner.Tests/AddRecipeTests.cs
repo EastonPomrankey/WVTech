@@ -33,7 +33,7 @@ namespace MealPlanner.Tests
             var externalRecipeService = new Mock<IExternalRecipeService>();
             var mockEnv = new Mock<IWebHostEnvironment>();
             mockEnv.Setup(e => e.WebRootPath).Returns(Path.GetTempPath());
-            _controller = new FoodEntriesController(_recipeRepository, tagRepo.Object, userRecipeRepo.Object, _context, registrationService.Object, mockEnv.Object, blobContainer: null, externalRecipeService.Object);
+            _controller = new FoodEntriesController(_recipeRepository, tagRepo.Object, userRecipeRepo.Object, _context, registrationService.Object, Mock.Of<IMeasurementRepository>(), mockEnv.Object, blobContainer: null, externalRecipeService.Object);
         }
 
         //handels the cleaning up after every test

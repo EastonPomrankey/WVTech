@@ -155,6 +155,15 @@ public class ShoppingListRepository : IShoppingListRepository
         }
     }
 
+    public bool UpdateMeasurementById(string userId, int itemId, int measurementId)
+    {
+        var item = _context.ShoppingListItems.Find(itemId);
+        if (item == null || item.UserId != userId) return false;
+        item.MeasurementId = measurementId;
+        _context.SaveChanges();
+        return true;
+    }
+
     private void DismissIngredientBaseInternal(string userId, int ingredientBaseId)
     {
         var alreadyDismissed = _context.DismissedShoppingItems
