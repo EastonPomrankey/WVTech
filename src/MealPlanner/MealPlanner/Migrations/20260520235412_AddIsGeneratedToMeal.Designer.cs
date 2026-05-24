@@ -4,6 +4,7 @@ using MealPlanner.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPlanner.Migrations
 {
     [DbContext(typeof(MealPlannerDBContext))]
-    partial class MealPlannerDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260520235412_AddIsGeneratedToMeal")]
+    partial class AddIsGeneratedToMeal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,28 +40,6 @@ namespace MealPlanner.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DietaryRestriction");
-                });
-
-            modelBuilder.Entity("MealPlanner.Models.DismissedShoppingItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IngredientBaseId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientBaseId");
-
-                    b.ToTable("DismissedShoppingItems");
                 });
 
             modelBuilder.Entity("MealPlanner.Models.Ingredient", b =>
@@ -289,18 +270,10 @@ namespace MealPlanner.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Abbreviation")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
@@ -455,9 +428,6 @@ namespace MealPlanner.Migrations
 
                     b.Property<float>("Amount")
                         .HasColumnType("real");
-
-                    b.Property<string>("DisplayAmount")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("IngredientBaseId")
                         .HasColumnType("int");
@@ -882,17 +852,6 @@ namespace MealPlanner.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("RecipeUser");
-                });
-
-            modelBuilder.Entity("MealPlanner.Models.DismissedShoppingItem", b =>
-                {
-                    b.HasOne("MealPlanner.Models.IngredientBase", "IngredientBase")
-                        .WithMany()
-                        .HasForeignKey("IngredientBaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IngredientBase");
                 });
 
             modelBuilder.Entity("MealPlanner.Models.Ingredient", b =>
