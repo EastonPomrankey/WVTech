@@ -58,6 +58,42 @@ public class SelectMealSteps
         }
     }
 
+    [Given("{string} has excluded {string} from today's schedule")]
+    public void GivenUserHasExcludedMealFromTodaysSchedule(string username, string mealTitle)
+    {
+        using var ctx = BDDSetup.CreateContext();
+        var user = ctx.Users.First(u => u.NormalizedEmail == $"{username}{_emailBase}".ToUpper());
+        var meal = ctx.Meals.First(m => m.UserId == user.Id && m.Title == mealTitle);
+        ctx.MealExclusions.Add(new MealExclusion { MealId = meal.Id, ExclusionDate = DateTime.Today });
+        ctx.SaveChanges();
+    }
+
+    [Given("{string} has a generated meal named {string}")]
+    public void GivenUserHasAGeneratedMeal(string username, string mealTitle)
+    {
+        using var ctx = BDDSetup.CreateContext();
+        var user = ctx.Users.First(u => u.NormalizedEmail == $"{username}{_emailBase}".ToUpper());
+
+        var existing = ctx.Meals
+            .Where(m => m.UserId == user.Id && m.Title == mealTitle)
+            .ToList();
+        if (existing.Count > 0)
+        {
+            ctx.RemoveRange(existing);
+            ctx.SaveChanges();
+        }
+
+        var meal = new Meal
+        {
+            UserId = user.Id,
+            Title = mealTitle,
+            StartTime = DateTime.Today,
+            IsGenerated = true
+        };
+        ctx.Add(meal);
+        ctx.SaveChanges();
+    }
+
     [Given("{string} has a meal named {string} scheduled on {int} different past dates")]
     public void GivenUserHasMealOnMultiplePastDates(string username, string mealTitle, int count)
     {
