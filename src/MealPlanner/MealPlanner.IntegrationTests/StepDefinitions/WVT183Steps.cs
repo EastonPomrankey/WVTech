@@ -117,8 +117,29 @@ public class WVT183Steps
         nameInput.SendKeys(name);
 
         nameInput.Submit();
-        _wait.Until(d => ((IJavaScriptExecutor)d)
-            .ExecuteScript("return document.readyState").ToString() == "complete");
+
+        // The JS submit handler calls e.preventDefault() and does an async conflict check
+        // before submitting. Wait for either: the conflict modal to appear (conflict found,
+        // no navigation), or a success alert (form submitted, page reloaded after redirect).
+        _wait.Until(d =>
+        {
+            try
+            {
+                var modal = d.FindElement(By.Id("sl-conflict-modal"));
+                if (modal.GetCssValue("display") == "flex") return true;
+            }
+            catch (NoSuchElementException) { }
+            catch (StaleElementReferenceException) { }
+
+            try
+            {
+                return d.FindElements(By.CssSelector(".sl-alert-success"))
+                    .Any(e => e.Displayed && !string.IsNullOrEmpty(e.Text));
+            }
+            catch { }
+
+            return false;
+        });
     }
 
     [Then("{string} appears on the shopping list")]
@@ -139,6 +160,23 @@ public class WVT183Steps
     [When("{string} submits the shopping list add form with no unit selected for name {string}")]
     public void WhenUserSubmitsAddFormWithNoUnit(string userName, string name)
     {
+        // Dismiss the auto-conflict popup if it appeared from prior scenario data
+        try
+        {
+            var backdrop = _driver.FindElement(By.Id("sl-acp-modal"));
+            if (backdrop.GetCssValue("display") == "flex")
+            {
+                _driver.FindElement(By.Id("sl-acp-accept-all")).Click();
+                _wait.Until(d =>
+                {
+                    try { return d.FindElement(By.Id("sl-acp-modal")).GetCssValue("display") != "flex"; }
+                    catch (NoSuchElementException) { return true; }
+                    catch (StaleElementReferenceException) { return true; }
+                });
+            }
+        }
+        catch (NoSuchElementException) { }
+
         var amountInput = _wait.Until(d =>
         {
             try { return d.FindElement(By.CssSelector("input[name='amount']")); }
@@ -198,6 +236,26 @@ public class WVT183Steps
             $"Expected unit '{expectedUnit}' in qty value '{qtyValue}'");
     }
 
+    [Then("a conflict suggestion is shown for {string}")]
+    public void ThenAConflictSuggestionIsShownFor(string ingredientName)
+    {
+        var conflictModal = _wait.Until(d =>
+        {
+            try
+            {
+                var modal = d.FindElement(By.Id("sl-conflict-modal"));
+                return modal.GetCssValue("display") == "flex" ? modal : null;
+            }
+            catch (NoSuchElementException) { return null; }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        Assert.That(conflictModal, Is.Not.Null, $"Conflict modal not visible for '{ingredientName}'");
+
+        var modalBody = conflictModal!.FindElement(By.Id("sl-conflict-modal-body"));
+        Assert.That(modalBody.Text, Does.Contain(ingredientName).IgnoreCase,
+            $"Conflict modal body doesn't mention '{ingredientName}'");
+    }
+
     [Then("{string} appears on the shopping list with amount {string}")]
     public void ThenItemAppearsOnShoppingListWithAmount(string ingredientName, string expectedAmount)
     {
@@ -217,5 +275,87 @@ public class WVT183Steps
         var qtyValue = qtyInput.GetAttribute("value") ?? "";
         Assert.That(qtyValue, Does.Contain(expectedAmount),
             $"Expected amount '{expectedAmount}' in qty value '{qtyValue}' for '{ingredientName}'");
+    }
+
+    [Then("the auto-conflict popup is shown")]
+    public void ThenAutoConflictPopupIsShown()
+    {
+        var modal = _wait.Until(d =>
+        {
+            try
+            {
+                var m = d.FindElement(By.Id("sl-acp-modal"));
+                return m.GetCssValue("display") == "flex" ? m : null;
+            }
+            catch (NoSuchElementException) { return null; }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        Assert.That(modal, Is.Not.Null, "Auto-conflict popup (sl-acp-modal) not visible");
+    }
+
+    [When("{string} clicks 'Allow all' on the auto-conflict popup")]
+    public void WhenUserClicksAllowAllOnAutoConflictPopup(string userName)
+    {
+        var btn = _wait.Until(d =>
+        {
+            try { return d.FindElement(By.Id("sl-acp-accept-all")); }
+            catch (NoSuchElementException) { return null; }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        btn!.Click();
+        _wait.Until(d =>
+        {
+            try
+            {
+                d.FindElement(By.CssSelector(".sl-card"));
+                return ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").ToString() == "complete";
+            }
+            catch (NoSuchElementException) { return false; }
+            catch (StaleElementReferenceException) { return false; }
+        });
+    }
+
+    [When("{string} clicks 'Decline all' on the auto-conflict popup")]
+    public void WhenUserClicksDeclineAllOnAutoConflictPopup(string userName)
+    {
+        var btn = _wait.Until(d =>
+        {
+            try { return d.FindElement(By.Id("sl-acp-reject-all")); }
+            catch (NoSuchElementException) { return null; }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        btn!.Click();
+        _wait.Until(d =>
+        {
+            try
+            {
+                d.FindElement(By.CssSelector(".sl-card"));
+                return ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").ToString() == "complete";
+            }
+            catch (NoSuchElementException) { return false; }
+            catch (StaleElementReferenceException) { return false; }
+        });
+    }
+
+    [Then("{string} appears {int} times on the shopping list")]
+    public void ThenIngredientAppearsNTimesOnShoppingList(string ingredientName, int expectedCount)
+    {
+        _wait.Until(d => ((IJavaScriptExecutor)d)
+            .ExecuteScript("return document.readyState").ToString() == "complete");
+
+        var matchingItems = _driver.FindElements(By.CssSelector(".item-display"))
+            .Where(i => i.Text.Contains(ingredientName, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        Assert.That(matchingItems.Count, Is.EqualTo(expectedCount),
+            $"Expected '{ingredientName}' to appear {expectedCount} time(s) on shopping list, found {matchingItems.Count}");
+    }
+
+    [When("{string} navigates away from the shopping list")]
+    public void WhenUserNavigatesAwayFromShoppingList(string userName)
+    {
+        _driver.Navigate().GoToUrl($"{_baseUrl}/");
+        _wait.Until(d => ((IJavaScriptExecutor)d)
+            .ExecuteScript("return document.readyState").ToString() == "complete");
     }
 }

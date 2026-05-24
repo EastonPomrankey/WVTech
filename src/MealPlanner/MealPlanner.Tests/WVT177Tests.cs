@@ -109,7 +109,8 @@ public class WVT177UpdateMeasurementTests
             new ShoppingListRepository(_context),
             Mock.Of<IMealRepository>(),
             Mock.Of<IIngredientBaseRepository>(),
-            Mock.Of<IRepository<Measurement>>());
+            new MeasurementRepository(_context),
+            new MeasurementConversionRepository(_context));
 
         _controller = new ShoppingController(
             shoppingListService,
@@ -117,7 +118,6 @@ public class WVT177UpdateMeasurementTests
             _userManagerMock.Object,
             null!,
             Mock.Of<IRegistrationService>(),
-            new MeasurementRepository(_context),
             _context);
 
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
@@ -319,11 +319,16 @@ public class WVT177KrogerExportBlockedTests
 
         _shoppingListRepoMock = new Mock<IShoppingListRepository>();
 
+        var conversionRepoMock = new Mock<IMeasurementConversionRepository>();
+        conversionRepoMock.Setup(r => r.GetConversionMap())
+            .Returns([]);
+
         _shoppingListService = new ShoppingListService(
             _shoppingListRepoMock.Object,
             Mock.Of<IMealRepository>(),
             Mock.Of<IIngredientBaseRepository>(),
-            Mock.Of<IRepository<Measurement>>());
+            Mock.Of<IMeasurementRepository>(),
+            conversionRepoMock.Object);
 
         _controller = new KrogerController(
             _userSettingsRepoMock.Object,

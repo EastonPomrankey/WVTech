@@ -5,7 +5,6 @@ using MealPlanner.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace MealPlanner.Controllers;
 
@@ -17,7 +16,6 @@ public class ShoppingController : Controller
     private readonly UserManager<User> _userManager;
     private readonly IUserSettingsRepository _userSettingsRepo;
     private readonly IRegistrationService _registrationService;
-    private readonly IMeasurementRepository _measurementRepo;
     private readonly MealPlannerDBContext _context;
 
     public ShoppingController(
@@ -26,7 +24,6 @@ public class ShoppingController : Controller
         UserManager<User> userManager,
         IUserSettingsRepository userSettingsRepo,
         IRegistrationService registrationService,
-        IMeasurementRepository measurementRepo,
         MealPlannerDBContext context)
     {
         _shoppingListService = shoppingListService;
@@ -34,8 +31,37 @@ public class ShoppingController : Controller
         _userManager = userManager;
         _userSettingsRepo = userSettingsRepo;
         _registrationService = registrationService;
-        _measurementRepo = measurementRepo;
         _context = context;
+    }
+
+    private const string AcceptedConflictsCookieName = "ShoppingAccepted";
+
+    private HashSet<(int BaseId, int MeasurementId)> ReadAcceptedConflicts()
+    {
+        if (!Request.Cookies.TryGetValue(AcceptedConflictsCookieName, out var raw) || string.IsNullOrEmpty(raw))
+            return [];
+        try
+        {
+            var pairs = System.Text.Json.JsonSerializer.Deserialize<List<int[]>>(raw);
+            return pairs?.Where(p => p.Length == 2).Select(p => (p[0], p[1])).ToHashSet() ?? [];
+        }
+        catch { return []; }
+    }
+
+    private void AppendAcceptedConflicts(IEnumerable<(int BaseId, int MeasurementId)> newPairs)
+    {
+        var existing = ReadAcceptedConflicts();
+        foreach (var pair in newPairs)
+            existing.Add(pair);
+
+        var json = System.Text.Json.JsonSerializer.Serialize(
+            existing.Select(p => new[] { p.BaseId, p.MeasurementId }).ToList());
+        Response.Cookies.Append(AcceptedConflictsCookieName, json, new CookieOptions
+        {
+            Expires = DateTimeOffset.UtcNow.AddDays(30),
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict
+        });
     }
 
     [HttpGet]
@@ -57,15 +83,29 @@ public class ShoppingController : Controller
             dateTo = cookieTo;
         }
 
-        if (!Request.Cookies.ContainsKey("ShoppingListSynced"))
-        {
-            await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, dateFrom, dateTo);
-            Response.Cookies.Append("ShoppingListSynced", "1", new CookieOptions { HttpOnly = true });
-        }
+        // Clear session-scoped conflict declines on fresh page loads so re-added
+        // recipes are re-evaluated. Skip this on redirects from conflict resolution
+        // so the decline we just saved isn't immediately erased.
+        if (TempData["SkipDeclineClear"] == null)
+            _shoppingListService.ClearMeasurementDeclines(user.Id);
 
-        var items = _shoppingListService.GetItemsForUser(user.Id);
+        await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, dateFrom, dateTo);
+
+        var items = _shoppingListService.GetItemsForUser(user.Id).ToList();
         var profile = await _userSettingsRepo.GetByUserIdAsync(user.Id);
-        var measurements = await _measurementRepo.GetAllOrderedAsync();
+        var measurements = await _shoppingListService.GetMeasurementsAsync();
+
+        var accepted = ReadAcceptedConflicts();
+        var autoAddedConflicts = _shoppingListService.FindAutoAddedConflicts(user.Id, items)
+            .Where(c => !accepted.Contains((c.AutoAdded.IngredientBase.Id, c.AutoAdded.MeasurementId)))
+            .Select(c => new AutoAddedConflict(
+                c.AutoAdded.Id,
+                c.AutoAdded.Amount,
+                c.AutoAdded.Measurement.Abbreviation ?? c.AutoAdded.Measurement.Name,
+                c.AutoAdded.IngredientBase.Name,
+                c.Manual.Amount,
+                c.Manual.Measurement.Abbreviation ?? c.Manual.Measurement.Name))
+            .ToList();
 
         return View(new ShoppingListViewModel
         {
@@ -75,7 +115,8 @@ public class ShoppingController : Controller
             ZipCode = profile?.ZipCode,
             LastStoreId = HttpContext.Session.GetString(KrogerController.SessionStoreId),
             KrogerConnected = !string.IsNullOrEmpty(HttpContext.Session.GetString("KrogerAccessToken")),
-            Measurements = measurements
+            Measurements = measurements,
+            AutoAddedConflicts = autoAddedConflicts
         });
     }
 
@@ -89,8 +130,6 @@ public class ShoppingController : Controller
         var rangeOptions = new CookieOptions { Expires = dateTo.AddDays(1), HttpOnly = true };
         Response.Cookies.Append("ShoppingListDateFrom", dateFrom.ToString("yyyy-MM-dd"), rangeOptions);
         Response.Cookies.Append("ShoppingListDateTo", dateTo.ToString("yyyy-MM-dd"), rangeOptions);
-
-        Response.Cookies.Delete("ShoppingListSynced");
 
         return RedirectToAction(nameof(Index));
     }
@@ -108,12 +147,21 @@ public class ShoppingController : Controller
         var rangeOptions = new CookieOptions { Expires = to.AddDays(1), HttpOnly = true };
         Response.Cookies.Append("ShoppingListDateFrom", from.ToString("yyyy-MM-dd"), rangeOptions);
         Response.Cookies.Append("ShoppingListDateTo", to.ToString("yyyy-MM-dd"), rangeOptions);
-        Response.Cookies.Delete("ShoppingListSynced");
 
         await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, from, to);
 
-        var items = _shoppingListService.GetItemsForUser(user.Id);
-        var measurements = await _measurementRepo.GetAllOrderedAsync();
+        // A date-range change may introduce new conflicts — reset previously
+        // accepted pairs so the conflict popup re-evaluates for the new range.
+        Response.Cookies.Delete(AcceptedConflictsCookieName);
+
+        var items = _shoppingListService.GetItemsForUser(user.Id).ToList();
+
+        if (_shoppingListService.FindAutoAddedConflicts(user.Id, items).Any())
+        {
+            Response.Headers["X-Has-Conflicts"] = "true";
+        }
+
+        var measurements = await _shoppingListService.GetMeasurementsAsync();
 
         Response.Headers["Cache-Control"] = "no-store";
 
@@ -126,9 +174,26 @@ public class ShoppingController : Controller
         });
     }
 
+    [HttpGet]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> FindConflictsJson(string ingredientName, string measurementName)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        var conflicts = _shoppingListService.FindConflictingItems(user.Id, ingredientName, measurementName);
+        return Ok(conflicts.Select(i => new
+        {
+            id = i.Id,
+            amount = i.Amount,
+            measurementAbbrev = i.Measurement.Abbreviation ?? i.Measurement.Name,
+            measurementName = i.Measurement.Name
+        }));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddItem(string itemName, string amount, string measurement)
+    public async Task<IActionResult> AddItem(string itemName, string amount, string measurement, [FromForm] int[]? replaceIds = null)
     {
         User? user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
@@ -160,6 +225,10 @@ public class ShoppingController : Controller
 
         try
         {
+            if (replaceIds != null)
+                foreach (var id in replaceIds)
+                    _shoppingListService.RemoveItem(id, user.Id);
+
             _shoppingListService.AddItem(user.Id, itemName, parsedAmount.Value, measurement, amount.Trim());
             TempData["ShoppingListSuccess"] = $"{itemName} added to your shopping list.";
         }
@@ -216,11 +285,10 @@ public class ShoppingController : Controller
         if (string.IsNullOrWhiteSpace(request.Measurement))
             return BadRequest("Measurement cannot be empty.");
 
-        var measurement = await _measurementRepo.FindOrCreateByNameAsync(request.Measurement.Trim());
-        var updated = _shoppingListService.UpdateItemMeasurement(user.Id, request.ItemId, measurement.Id);
-        if (!updated) return NotFound();
+        var abbreviation = await _shoppingListService.UpdateItemMeasurementAsync(user.Id, request.ItemId, request.Measurement);
+        if (abbreviation == null) return NotFound();
 
-        return Ok(new { abbreviation = measurement.Abbreviation });
+        return Ok(new { abbreviation });
     }
 
     public record UpdateMeasurementRequest(int ItemId, string Measurement);
@@ -267,6 +335,38 @@ public class ShoppingController : Controller
 
         _shoppingListService.RemoveItem(itemId, user.Id);
 
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AcceptConflicts([FromForm] int[]? itemIds = null)
+    {
+        User? user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        if (itemIds != null && itemIds.Length > 0)
+        {
+            var pairs = _shoppingListService.GetItemsForUser(user.Id)
+                .Where(i => itemIds.Contains(i.Id))
+                .Select(i => (i.IngredientBase.Id, i.MeasurementId));
+            AppendAcceptedConflicts(pairs);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResolveConflicts([FromForm] int[]? itemIds = null)
+    {
+        User? user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        if (itemIds != null && itemIds.Length > 0)
+            _shoppingListService.ResolveAutoAddedConflicts(user.Id, itemIds);
+
+        TempData["SkipDeclineClear"] = true;
         return RedirectToAction(nameof(Index));
     }
 

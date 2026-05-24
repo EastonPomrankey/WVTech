@@ -29,6 +29,64 @@
         <div class="sl-alert sl-alert-danger">@TempData["ShoppingListError"]</div>
     }
     <div id="sl-live-alert" class="sl-alert" style="display:none" role="alert" aria-live="assertive"></div>
+
+    @if (Model.AutoAddedConflicts.Any())
+    {
+        <form asp-action="AcceptConflicts" method="post" id="sl-accept-form" style="display:none">
+            @Html.AntiForgeryToken()
+            @foreach (var c in Model.AutoAddedConflicts)
+            {
+                <input type="hidden" name="itemIds" value="@c.AutoAddedItemId" />
+            }
+        </form>
+
+        <div id="sl-acp-modal" class="dcm-backdrop" style="display:none" aria-modal="true" role="dialog">
+            <div class="dcm-panel sl-acp-panel">
+                <div class="dcm-icon-wrap">
+                    <i class="ti ti-alert-triangle dcm-icon"></i>
+                </div>
+                <p class="dcm-title">Review duplicate ingredients</p>
+                <p class="dcm-sub">These recipe-added items conflict with items already on your list. Select which ones to remove, or allow both:</p>
+                <form asp-action="ResolveConflicts" method="post" id="sl-conflicts-form">
+                    @Html.AntiForgeryToken()
+                    <ul class="sl-acp-list">
+                        @foreach (var c in Model.AutoAddedConflicts)
+                        {
+                            <li class="sl-acp-row">
+                                <label class="sl-acp-label">
+                                    <input type="checkbox" name="itemIds" value="@c.AutoAddedItemId" class="sl-acp-check" checked />
+                                    <span>
+                                        <strong>@MealPlanner.Services.FractionParser.FormatAmount(c.AutoAddedAmount) @c.AutoAddedAbbrev @c.IngredientName</strong>
+                                        <span class="sl-acp-note">already on list as @MealPlanner.Services.FractionParser.FormatAmount(c.ManualAmount) @c.ManualAbbrev</span>
+                                    </span>
+                                </label>
+                            </li>
+                        }
+                    </ul>
+                    <div class="dcm-btn-row sl-acp-actions">
+                        <button type="button" class="dcm-btn dcm-btn--cancel" id="sl-acp-reject-all">Decline all</button>
+                        <button type="button" class="dcm-btn dcm-btn--cancel" id="sl-acp-accept-all">Allow all</button>
+                        <button type="submit" class="dcm-btn dcm-btn--delete">Remove selected</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div id="sl-conflict-modal" class="dcm-backdrop" style="display:none" aria-modal="true" role="dialog">
+        <div class="dcm-panel">
+            <div class="dcm-icon-wrap">
+                <i class="ti ti-alert-triangle dcm-icon"></i>
+            </div>
+            <p class="dcm-title">Duplicate ingredient detected</p>
+            <p id="sl-conflict-modal-body" class="dcm-sub"></p>
+            <div class="dcm-btn-row">
+                <button type="button" class="dcm-btn dcm-btn--cancel" id="sl-conflict-cancel">Cancel</button>
+                <button type="button" class="dcm-btn dcm-btn--cancel" id="sl-conflict-keep">Keep both</button>
+                <button type="button" class="dcm-btn dcm-btn--delete" id="sl-conflict-replace">Replace existing</button>
+            </div>
+        </div>
+    </div>
     @if (TempData["KrogerSuccess"] != null)
     {
         <div class="sl-alert sl-alert-success">@TempData["KrogerSuccess"]</div>

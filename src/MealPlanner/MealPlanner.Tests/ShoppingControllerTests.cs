@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using MealPlanner.Controllers;
-using MealPlanner.DAL.Abstract;
 using MealPlanner.Models;
 using MealPlanner.Services;
 using MealPlanner.ViewModels;
@@ -71,7 +70,6 @@ public class ShoppingControllerTests
             _userManagerMock.Object,
             null!,
             _registrationServiceMock.Object,
-            Mock.Of<IMeasurementRepository>(),
             _context);
         _controller.ControllerContext = new ControllerContext
         {
