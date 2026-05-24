@@ -102,6 +102,8 @@ public class ShoppingListService : IShoppingListService
         }
 
         var toAdd = new List<ShoppingListItem>();
+        var updatedManualIds = new HashSet<int>();
+
         foreach (var item in grouped)
         {
             if (dismissed.Contains(item.IngredientBase.Id))
@@ -110,21 +112,49 @@ public class ShoppingListService : IShoppingListService
             if (declinedPairs.Contains((item.IngredientBase.Id, item.Measurement.Id)))
                 continue;
 
+            bool hasConv = conversionMap.TryGetValue(item.Measurement.Id, out var recipeConv);
+            float recipeContribInBase = hasConv ? item.Amount * recipeConv.Factor : item.Amount;
+            int recipeBaseId = hasConv ? recipeConv.ToMeasurementId : item.Measurement.Id;
+
             var normalizedName = IngredientNameNormalizer.NormalizeKey(item.IngredientBase.Name);
-            var alreadyCovered = manualItems.Any(m =>
+            var compatibleManual = manualItems.FirstOrDefault(m =>
+                string.Equals(IngredientNameNormalizer.NormalizeKey(m.IngredientBase.Name), normalizedName, StringComparison.OrdinalIgnoreCase)
+                && (conversionMap.TryGetValue(m.MeasurementId, out var mc)
+                    ? mc.ToMeasurementId : m.MeasurementId) == recipeBaseId);
+
+            if (compatibleManual != null)
             {
-                if (!string.Equals(IngredientNameNormalizer.NormalizeKey(m.IngredientBase.Name), normalizedName, StringComparison.OrdinalIgnoreCase))
-                    return false;
-                // Compare base unit families symmetrically (auto item may not be in base unit)
-                int itemBase = conversionMap.TryGetValue(item.Measurement.Id, out var ac)
-                    ? ac.ToMeasurementId : item.Measurement.Id;
-                int? manualBase = conversionMap.TryGetValue(m.MeasurementId, out var mc)
-                    ? mc.ToMeasurementId : (int?)null;
-                return (manualBase.HasValue && manualBase.Value == itemBase)
-                    || m.MeasurementId == item.Measurement.Id;
-            });
-            if (!alreadyCovered)
+                float userPure = MathF.Max(0f,
+                    ToBase(compatibleManual.Amount, compatibleManual.MeasurementId, conversionMap)
+                    - compatibleManual.RecipeContributionAmountInBase);
+                float newTotalInBase = userPure + recipeContribInBase;
+                // Convert back to the item's own unit so Amount stays consistent with MeasurementId.
+                float newAmountInItemUnit = conversionMap.TryGetValue(compatibleManual.MeasurementId, out var itemConv)
+                    ? newTotalInBase / itemConv.Factor
+                    : newTotalInBase;
+                _shoppingListRepository.UpdateAmountAndRecipeContribution(
+                    userId, compatibleManual.Id,
+                    newAmountInItemUnit,
+                    recipeContribInBase);
+                updatedManualIds.Add(compatibleManual.Id);
+            }
+            else
+            {
                 toAdd.Add(item);
+            }
+        }
+
+        // Recipe removed: zero out the stale recipe contribution from any manual item not updated
+        foreach (var manual in manualItems.Where(m => m.RecipeContributionAmountInBase > 0 && !updatedManualIds.Contains(m.Id)))
+        {
+            float userPure = MathF.Max(0f,
+                ToBase(manual.Amount, manual.MeasurementId, conversionMap)
+                - manual.RecipeContributionAmountInBase);
+            // Convert back to the item's own unit.
+            float restoredInItemUnit = conversionMap.TryGetValue(manual.MeasurementId, out var restoreConv)
+                ? userPure / restoreConv.Factor
+                : userPure;
+            _shoppingListRepository.UpdateAmountAndRecipeContribution(userId, manual.Id, restoredInItemUnit, 0f);
         }
 
         if (toAdd.Count > 0)
@@ -138,8 +168,9 @@ public class ShoppingListService : IShoppingListService
 
         var ingredientBase = _ingredientBaseRepo.FindOrCreateByName(itemName);
 
+        var allMeasurements = _measurementRepo.ReadAll();
         var trimmed = measurement.Trim();
-        var measurementEntity = _measurementRepo.ReadAll()
+        var measurementEntity = allMeasurements
             .FirstOrDefault(m => m.Name.ToLower() == trimmed.ToLower()
                               || m.Abbreviation.ToLower() == trimmed.ToLower());
         if (measurementEntity == null)
@@ -147,17 +178,68 @@ public class ShoppingListService : IShoppingListService
 
         _shoppingListRepository.UnDismiss(userId, ingredientBase.Id);
 
-        var item = new ShoppingListItem
-        {
-            UserId = userId,
-            IngredientBase = ingredientBase,
-            Measurement = measurementEntity,
-            Amount = amount,
-            DisplayAmount = displayAmount,
-            IsAutoAdded = false
-        };
+        var conversionMap = _conversionRepo.GetConversionMap();
+        var measurementsById = allMeasurements.ToDictionary(m => m.Id);
 
-        _shoppingListRepository.Add(item);
+        bool newHasConv = conversionMap.TryGetValue(measurementEntity.Id, out var newConv);
+        int newBaseId = newHasConv ? newConv.ToMeasurementId : measurementEntity.Id;
+        float newAmountInBase = newHasConv ? amount * newConv.Factor : amount;
+
+        var normalizedName = IngredientNameNormalizer.NormalizeKey(ingredientBase.Name);
+        var compatible = _shoppingListRepository.GetByUserId(userId)
+            .Where(i => IngredientNameNormalizer.NormalizeKey(i.IngredientBase.Name) == normalizedName
+                     && (conversionMap.TryGetValue(i.MeasurementId, out var ic) ? ic.ToMeasurementId : i.MeasurementId) == newBaseId)
+            .ToList();
+
+        if (compatible.Count > 0)
+        {
+            float existingTotalInBase = MathF.Max(0f,
+                compatible.Sum(i => ToBase(i.Amount, i.MeasurementId, conversionMap)));
+            // Auto-added items are entirely recipe contribution; manual items track their own.
+            float existingRecipeContrib = compatible.Sum(i =>
+                i.IsAutoAdded
+                    ? MathF.Max(0f, ToBase(i.Amount, i.MeasurementId, conversionMap))
+                    : i.RecipeContributionAmountInBase);
+            float totalInBase = existingTotalInBase + newAmountInBase;
+
+            foreach (var old in compatible)
+                _shoppingListRepository.DeleteWithoutDismiss(old.Id, userId);
+
+            // Store in the largest compatible unit (e.g. cups instead of tsp) for readability.
+            float bestFactor = newHasConv ? newConv.Factor : 1f;
+            int bestMeasurementId = measurementEntity.Id;
+            foreach (var mid in compatible.Select(i => i.MeasurementId).Distinct())
+            {
+                if (conversionMap.TryGetValue(mid, out var mc) && mc.Factor > bestFactor)
+                {
+                    bestFactor = mc.Factor;
+                    bestMeasurementId = mid;
+                }
+            }
+            var bestMeasurement = measurementsById.TryGetValue(bestMeasurementId, out var bm) ? bm : measurementEntity;
+
+            _shoppingListRepository.Add(new ShoppingListItem
+            {
+                UserId = userId,
+                IngredientBase = ingredientBase,
+                Measurement = bestMeasurement,
+                Amount = totalInBase / bestFactor,
+                IsAutoAdded = false,
+                RecipeContributionAmountInBase = existingRecipeContrib
+            });
+        }
+        else
+        {
+            _shoppingListRepository.Add(new ShoppingListItem
+            {
+                UserId = userId,
+                IngredientBase = ingredientBase,
+                Measurement = measurementEntity,
+                Amount = amount,
+                DisplayAmount = displayAmount,
+                IsAutoAdded = false
+            });
+        }
     }
 
     public void AddItemsBatch(string userId, IEnumerable<(string name, float amount, string measurement)> items)
@@ -313,4 +395,7 @@ public class ShoppingListService : IShoppingListService
             })
             .ToList();
     }
+
+    private static float ToBase(float amount, int measurementId, Dictionary<int, (int ToMeasurementId, float Factor)> conversionMap)
+        => conversionMap.TryGetValue(measurementId, out var conv) ? amount * conv.Factor : amount;
 }

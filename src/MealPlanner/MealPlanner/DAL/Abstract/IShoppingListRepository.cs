@@ -32,4 +32,5 @@ public interface IShoppingListRepository
     void DeleteWithoutDismiss(int itemId, string userId);
 
     bool UpdateMeasurementById(string userId, int itemId, int measurementId);
+    void UpdateAmountAndRecipeContribution(string userId, int itemId, float newAmount, float recipeContribution);
 }

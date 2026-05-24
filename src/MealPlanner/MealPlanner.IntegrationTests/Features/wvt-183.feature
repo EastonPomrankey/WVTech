@@ -67,3 +67,23 @@ Feature: WVT-183 Ingredient recognition and matching
     When 'Alice' navigates away from the shopping list
     And 'Alice' navigates to the shopping list
     Then the auto-conflict popup is shown
+
+  Scenario: Manually adding a compatible unit absorbs the auto-added item into one merged item
+    Given 'Alice' has a meal with ingredient 'wvt183oil' in 'Tablespoon' with amount '2' for today
+    When 'Alice' syncs her shopping list for today
+    And 'Alice' adds a shopping list item with amount '6' unit 'Teaspoon' and name 'wvt183oil'
+    Then the shopping list shows 'wvt183oil' once with amount '4' in 'tbsp'
+
+  Scenario: Manually adding a compatible unit to an existing manual item merges them
+    Given 'Alice' has 'wvt183vinegar' with amount '2' and measurement 'Tablespoon' on the shopping list
+    When 'Alice' navigates to the shopping list
+    And 'Alice' adds a shopping list item with amount '6' unit 'Teaspoon' and name 'wvt183vinegar'
+    Then the shopping list shows 'wvt183vinegar' once with amount '4' in 'tbsp'
+
+  Scenario: Removing a recipe restores only the user-added portion of a merged item
+    Given 'Alice' has a meal with ingredient 'wvt183tahini' in 'Tablespoon' with amount '3' for today
+    When 'Alice' syncs her shopping list for today
+    And 'Alice' adds a shopping list item with amount '3' unit 'Teaspoon' and name 'wvt183tahini'
+    When 'Alice' removes her meal containing 'wvt183tahini'
+    And 'Alice' syncs her shopping list for today
+    Then 'wvt183tahini' appears on the shopping list with amount '1'

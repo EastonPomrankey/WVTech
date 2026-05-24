@@ -358,4 +358,21 @@ public class WVT183Steps
         _wait.Until(d => ((IJavaScriptExecutor)d)
             .ExecuteScript("return document.readyState").ToString() == "complete");
     }
+
+    [When("{string} removes her meal containing {string}")]
+    public void WhenUserRemovesMealContaining(string userName, string ingredientName)
+    {
+        using var ctx = BDDSetup.CreateContext();
+        var user = ctx.Set<User>().FirstOrDefault(u => u.Email == $"{userName}{_emailBase}");
+        Assert.That(user, Is.Not.Null, $"User '{userName}' not found");
+
+        var meals = ctx.Meals
+            .Where(m => m.UserId == user!.Id
+                     && m.Recipes.Any(r => r.Ingredients.Any(i =>
+                            i.IngredientBase.Name == ingredientName)))
+            .ToList();
+
+        ctx.Meals.RemoveRange(meals);
+        ctx.SaveChanges();
+    }
 }

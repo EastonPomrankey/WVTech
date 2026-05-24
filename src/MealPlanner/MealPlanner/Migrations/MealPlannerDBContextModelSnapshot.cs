@@ -490,6 +490,9 @@ namespace MealPlanner.Migrations
                     b.Property<int>("MeasurementId")
                         .HasColumnType("int");
 
+                    b.Property<float>("RecipeContributionAmountInBase")
+                        .HasColumnType("real");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

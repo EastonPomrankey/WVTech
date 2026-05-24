@@ -171,6 +171,13 @@ document.addEventListener("click", async function (e) {
   }).catch(() => {});
 });
 
+document.addEventListener("keydown", function (e) {
+  if (!e.target.matches(".qty-input")) return;
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  e.target.blur();
+});
+
 document.addEventListener("focusin", function (e) {
   if (!e.target.matches(".qty-input")) return;
   clearError(e.target);

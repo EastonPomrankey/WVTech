@@ -377,6 +377,27 @@ public class WVT183ShoppingListSyncTests
     }
 
     [Test]
+    public void AddItem_EmptyMeasurement_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            _service.AddItem(_userId, "wvt183flour", 1f, ""));
+    }
+
+    [Test]
+    public void AddItem_WhitespaceMeasurement_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            _service.AddItem(_userId, "wvt183flour", 1f, "   "));
+    }
+
+    [Test]
+    public void AddItem_UnknownMeasurementName_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            _service.AddItem(_userId, "wvt183flour", 1f, "hectoliter"));
+    }
+
+    [Test]
     public void ResolveAutoAddedConflicts_Decline_RemovesAutoItemAndDismisses()
     {
         var count = new Measurement { Name = "Count", Abbreviation = "Count", SortOrder = 1 };

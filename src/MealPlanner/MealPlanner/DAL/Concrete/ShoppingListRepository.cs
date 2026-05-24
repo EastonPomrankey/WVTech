@@ -119,11 +119,13 @@ public class ShoppingListRepository : IShoppingListRepository
         var items = _context.ShoppingListItems
             .Where(i => i.UserId == userId)
             .ToList();
-
-        foreach (var item in items)
-            DismissIngredientBaseInternal(userId, item.IngredientBaseId);
-
         _context.ShoppingListItems.RemoveRange(items);
+
+        var dismisses = _context.DismissedShoppingItems
+            .Where(d => d.UserId == userId)
+            .ToList();
+        _context.DismissedShoppingItems.RemoveRange(dismisses);
+
         _context.SaveChanges();
     }
 
@@ -176,14 +178,8 @@ public class ShoppingListRepository : IShoppingListRepository
 
     public void ClearMeasurementDeclines(string userId)
     {
-        var rows = _context.DismissedShoppingItems
-            .Where(d => d.UserId == userId && d.MeasurementId != null)
-            .ToList();
-        if (rows.Count > 0)
-        {
-            _context.DismissedShoppingItems.RemoveRange(rows);
-            _context.SaveChanges();
-        }
+        // Dismisses now persist until the user explicitly clears the cart (ClearAllItems).
+        // No-op here so "Remove selected" and "Decline all" decisions survive page navigation.
     }
 
     public void DismissByMeasurement(string userId, int ingredientBaseId, int measurementId)
@@ -232,6 +228,16 @@ public class ShoppingListRepository : IShoppingListRepository
         item.MeasurementId = measurementId;
         _context.SaveChanges();
         return true;
+    }
+
+    public void UpdateAmountAndRecipeContribution(string userId, int itemId, float newAmount, float recipeContribution)
+    {
+        var item = _context.ShoppingListItems.Find(itemId);
+        if (item == null || item.UserId != userId) return;
+        item.Amount = newAmount;
+        item.RecipeContributionAmountInBase = recipeContribution;
+        item.DisplayAmount = null;
+        _context.SaveChanges();
     }
 
     private void DismissIngredientBaseInternal(string userId, int ingredientBaseId)

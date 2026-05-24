@@ -32,6 +32,9 @@ public class SeedService
             logger.LogInformation("Seeding measurement conversions.");
             await SeedMeasurementConversionsAsync(context, logger);
 
+            logger.LogInformation("Seeding alias measurement conversions.");
+            await EnsureMeasurementAliasConversionsAsync(context, logger);
+
             logger.LogInformation("Migrating orphan measurements.");
             await MigrateOrphanMeasurementsAsync(context, logger);
 
@@ -200,6 +203,57 @@ public class SeedService
             context.MeasurementConversions.AddRange(toAdd);
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded {Count} measurement conversions.", toAdd.Count);
+        }
+    }
+
+    // Adds conversion entries for measurements that exist in the DB (e.g. Edamam plurals like
+    // "cups", "tablespoons") but have no conversion entry yet, by matching their singular name
+    // to a canonical seeded measurement that does have a conversion.
+    private static async Task EnsureMeasurementAliasConversionsAsync(MealPlannerDBContext context, ILogger logger)
+    {
+        var allMeasurements = await context.Set<Measurement>().ToListAsync();
+        var existingConversions = await context.MeasurementConversions.ToListAsync();
+        var coveredFromIds = existingConversions.Select(c => c.FromMeasurementId).ToHashSet();
+
+        var uncovered = allMeasurements.Where(m => !coveredFromIds.Contains(m.Id)).ToList();
+        if (uncovered.Count == 0) return;
+
+        // Build a lookup: singular-lowercase canonical name → its conversion row.
+        // NormalizeAliasKey strips "(s)" suffix and trailing 's' so "Cup(s)", "cups" → "cup".
+        static string NormalizeAliasKey(string name)
+        {
+            var s = name.Trim().ToLowerInvariant();
+            if (s.EndsWith("(s)")) s = s[..^3].TrimEnd();
+            return s.TrimEnd('s').Trim();
+        }
+
+        var canonicalByKey = existingConversions
+            .Join(allMeasurements, c => c.FromMeasurementId, m => m.Id,
+                  (c, m) => (Key: NormalizeAliasKey(m.Name), Conv: c))
+            .GroupBy(x => x.Key)
+            .ToDictionary(g => g.Key, g => g.First().Conv);
+
+        var toAdd = new List<MeasurementConversion>();
+        foreach (var m in uncovered)
+        {
+            var key = NormalizeAliasKey(m.Name);
+            if (canonicalByKey.TryGetValue(key, out var canon))
+            {
+                toAdd.Add(new MeasurementConversion
+                {
+                    FromMeasurementId = m.Id,
+                    ToMeasurementId = canon.ToMeasurementId,
+                    Factor = canon.Factor
+                });
+                logger.LogInformation("Adding alias conversion: '{Name}' → base unit {ToId} ×{Factor}.",
+                    m.Name, canon.ToMeasurementId, canon.Factor);
+            }
+        }
+
+        if (toAdd.Count > 0)
+        {
+            context.MeasurementConversions.AddRange(toAdd);
+            await context.SaveChangesAsync();
         }
     }
 

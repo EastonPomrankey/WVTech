@@ -89,7 +89,8 @@ public class ShoppingController : Controller
         if (TempData["SkipDeclineClear"] == null)
             _shoppingListService.ClearMeasurementDeclines(user.Id);
 
-        await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, dateFrom, dateTo);
+        if (TempData["SkipSync"] == null)
+            await _shoppingListService.SyncFromDateRangeAsync(user.Id, user, dateFrom, dateTo);
 
         var items = _shoppingListService.GetItemsForUser(user.Id).ToList();
         var profile = await _userSettingsRepo.GetByUserIdAsync(user.Id);
@@ -217,17 +218,24 @@ public class ShoppingController : Controller
         }
 
         float? parsedAmount = FractionParser.ParseAmount(amount);
-        if (parsedAmount == null)
+        if (parsedAmount == null || parsedAmount.Value <= 0)
         {
-            TempData["ShoppingListError"] = $"Invalid amount \"{amount}\". Use a number, fraction (1/2), or mixed number (1 1/2).";
+            TempData["ShoppingListError"] = parsedAmount == null
+                ? $"Invalid amount \"{amount}\". Use a number, fraction (1/2), or mixed number (1 1/2)."
+                : "Quantity must be greater than zero.";
             return RedirectToAction(nameof(Index));
         }
 
         try
         {
-            if (replaceIds != null)
+            if (replaceIds != null && replaceIds.Length > 0)
+            {
                 foreach (var id in replaceIds)
                     _shoppingListService.RemoveItem(id, user.Id);
+                // Prevent the redirect sync from immediately re-adding the replaced item
+                // from recipe contributions before the user sees the clean replacement result.
+                TempData["SkipSync"] = true;
+            }
 
             _shoppingListService.AddItem(user.Id, itemName, parsedAmount.Value, measurement, amount.Trim());
             TempData["ShoppingListSuccess"] = $"{itemName} added to your shopping list.";
@@ -322,6 +330,7 @@ public class ShoppingController : Controller
         if (user == null) return Challenge();
 
         _shoppingListService.ClearItems(user.Id);
+        TempData["SkipSync"] = true;
         TempData["ShoppingListSuccess"] = "Shopping list cleared.";
         return RedirectToAction(nameof(Index));
     }
