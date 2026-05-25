@@ -43,7 +43,7 @@ namespace Mealplanner.IntegrationTests
                 StartTime = DateTime.Now
             };
 
-            var recipes = ctx.Set<Recipe>().Where(r => new[] { -1, -2, -3, -4 }.Contains(r.Id)).ToList();
+            var recipes = ctx.Set<Recipe>().OrderBy(r => r.Id).Take(4).ToList();
             foreach (var recipe in recipes)
             {
                 meal.Recipes.Add(recipe);
