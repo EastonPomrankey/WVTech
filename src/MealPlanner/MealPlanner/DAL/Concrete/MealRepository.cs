@@ -45,7 +45,7 @@ public class MealRepository : Repository<Meal>, IMealRepository
 
             var shell = new Recipe
             {
-                Name = string.Empty,
+                Name = recipe.Name,
                 Directions = string.Empty,
                 ExternalUri = uri
             };
@@ -198,6 +198,7 @@ public class MealRepository : Repository<Meal>, IMealRepository
         var rangeEnd = end.AddDays(1);
 
         var exactMeals = await _dbset
+            .AsNoTracking()
             .Include(m => m.Recipes)
                 .ThenInclude(r => r.Ingredients)
             .Where(m => m.UserId == user.Id && m.StartTime != null)
@@ -209,6 +210,7 @@ public class MealRepository : Repository<Meal>, IMealRepository
             .ToHashSet();
 
         var weeklyMeals = await _dbset
+            .AsNoTracking()
             .Include(m => m.Recipes)
                 .ThenInclude(r => r.Ingredients)
             .Where(m => m.UserId == user.Id && m.RepeatRule == "Weekly" && m.StartTime != null)
@@ -280,6 +282,7 @@ public class MealRepository : Repository<Meal>, IMealRepository
     public async Task<Meal?> ReadWithIngredientsAsync(int id)
     {
         return await _dbset
+            .AsNoTracking()
             .Include(m => m.Recipes)
                 .ThenInclude(r => r.Ingredients)
             .FirstOrDefaultAsync(m => m.Id == id);

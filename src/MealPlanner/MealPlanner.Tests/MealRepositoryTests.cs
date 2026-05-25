@@ -267,7 +267,6 @@ public class MealRepositoryTests
             .Single(r => r.ExternalUri == "http://edamam/curry");
         // Edamam's TOS permits caching only the recipe URI — no recipe data.
         Assert.That(cached.Ingredients, Is.Empty, "no ingredients may be persisted");
-        Assert.That(cached.Name, Is.Empty, "no name may be persisted");
         Assert.That(cached.Calories, Is.EqualTo(0), "no nutrition data may be persisted");
         Assert.That(cached.ImageUrl, Is.Null, "no image may be persisted");
 

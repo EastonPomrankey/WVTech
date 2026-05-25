@@ -84,6 +84,13 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class, n
     /// <returns>Existing or newly added entity</returns>
     public virtual TEntity FindOrCreate(Expression<Func<TEntity, bool>> predicate, Func<TEntity> factory)
     {
-        return _dbset.FirstOrDefault(predicate) ?? _dbset.Add(factory()).Entity;
+        // Check the local cache first so callers that FindOrCreate the same key
+        // multiple times within a single DbContext (e.g. several Edamam recipes
+        // each referencing "cup") reuse the staged Added entity instead of
+        // adding a second one that would collide on a unique index at save.
+        var compiled = predicate.Compile();
+        return _dbset.Local.FirstOrDefault(compiled)
+            ?? _dbset.FirstOrDefault(predicate)
+            ?? _dbset.Add(factory()).Entity;
     }
 }

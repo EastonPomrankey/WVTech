@@ -1,3 +1,4 @@
+using MealPlanner.DAL.Abstract;
 using MealPlanner.Models;
 using MealPlanner.Models.DTO;
 using MealPlanner.Services;
@@ -34,7 +35,34 @@ public class EdamamServiceTests
             BaseAddress = new Uri("https://api.test.com/api/")
         };
 
-        return (new EdamamService(client, "testid", "testkey"), messageHandler);
+        var (ingredientBaseRepo, measurementRepo) = CreateLookupRepoMocks();
+
+        return (
+            new EdamamService(client, "testid", "testkey", ingredientBaseRepo, measurementRepo),
+            messageHandler);
+    }
+
+    private static (IIngredientBaseRepository, IMeasurementRepository) CreateLookupRepoMocks()
+    {
+        var ingredientBaseRepo = new Mock<IIngredientBaseRepository>();
+        ingredientBaseRepo
+            .Setup(r => r.GetOrCreateByNames(It.IsAny<IEnumerable<string>>()))
+            .Returns((IEnumerable<string> names) => names
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(IngredientNameNormalizer.NormalizeKey)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(n => n, n => new IngredientBase { Name = n }, StringComparer.OrdinalIgnoreCase));
+
+        var measurementRepo = new Mock<IMeasurementRepository>();
+        measurementRepo
+            .Setup(r => r.GetOrCreateByNames(It.IsAny<IEnumerable<string>>()))
+            .Returns((IEnumerable<string> names) => names
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(n => n.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(n => n, n => new Measurement { Name = n, Abbreviation = n }, StringComparer.OrdinalIgnoreCase));
+
+        return (ingredientBaseRepo.Object, measurementRepo.Object);
     }
 
     [Test]
@@ -325,7 +353,8 @@ public class EdamamServiceTests
         {
             BaseAddress = new Uri("https://api.test.com/api/")
         };
-        EdamamService service = new EdamamService(client, "testid", "testkey");
+        var (ibRepo, mRepo) = CreateLookupRepoMocks();
+        EdamamService service = new EdamamService(client, "testid", "testkey", ibRepo, mRepo);
 
         // Act
         var result = await service.GetExternalRecipesByURIs([]);
@@ -471,7 +500,8 @@ public class EdamamServiceTests
                 Content = new StringContent(jsonResponse)
             });
         var client = new HttpClient(messageHandler.Object) { BaseAddress = new Uri("https://api.test.com/api/") };
-        return (new EdamamService(client, "testid", "testkey"), requests);
+        var (ibRepo, mRepo) = CreateLookupRepoMocks();
+        return (new EdamamService(client, "testid", "testkey", ibRepo, mRepo), requests);
     }
 
     private const string EmptyHitsJson = """{ "from": 1, "to": 0, "count": 0, "_links": {}, "hits": [] }""";

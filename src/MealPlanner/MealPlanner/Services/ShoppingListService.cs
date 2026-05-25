@@ -1,4 +1,5 @@
 using MealPlanner.DAL.Abstract;
+using MealPlanner.Helpers;
 using MealPlanner.Models;
 
 namespace MealPlanner.Services;
@@ -9,20 +10,29 @@ public class ShoppingListService : IShoppingListService
     private readonly IMealRepository _mealRepository;
     private readonly IIngredientBaseRepository _ingredientBaseRepo;
     private readonly IRepository<Measurement> _measurementRepo;
+    private readonly IExternalRecipeService? _externalRecipeService;
     private readonly IUserRepository? _userRepo;
 
-    public ShoppingListService(IShoppingListRepository shoppingListRepository, IMealRepository mealRepository, IIngredientBaseRepository ingredientBaseRepo, IRepository<Measurement> measurementRepo, IUserRepository? userRepo = null)
+    public ShoppingListService(
+        IShoppingListRepository shoppingListRepository, 
+        IMealRepository mealRepository, 
+        IIngredientBaseRepository ingredientBaseRepo, 
+        IRepository<Measurement> measurementRepo,
+        IExternalRecipeService? externalRecipeService = null,
+        IUserRepository? userRepo = null)
     {
         _shoppingListRepository = shoppingListRepository;
         _mealRepository = mealRepository;
         _ingredientBaseRepo = ingredientBaseRepo;
-        _measurementRepo = measurementRepo;
+        _measurementRepo = measurementRepo;   
+        _externalRecipeService = externalRecipeService;
         _userRepo = userRepo;
     }
 
     public async Task SyncFromDateRangeAsync(string userId, User user, DateTime dateFrom, DateTime dateTo)
     {
         var meals = await _mealRepository.GetUserMealsByDateRangeWithIngredientsAsync(user, dateFrom, dateTo);
+        await meals.LoadExternalRecipesAsync(_externalRecipeService);
         var ingredients = meals
             .SelectMany(m => m.Recipes.DistinctBy(r => r.Id).SelectMany(r => r.Ingredients))
             .ToList();
@@ -31,6 +41,12 @@ public class ShoppingListService : IShoppingListService
 
     private void SyncFromMeals(string userId, IEnumerable<Ingredient> ingredients)
     {
+        // External recipe ingredients arrive with IngredientBase and Measurement
+        // already FindOrCreate'd in EdamamService.ParseIngredientsFromResponse,
+        // so by the time RemoveAutoAddedByUserId's SaveChanges runs below those
+        // tracked-Added rows get committed and their Ids materialize on the
+        // existing C# instances. After that, every ingredient in this list has a
+        // real IngredientBase.Id and Measurement.Id and we can group/FK normally.
         _shoppingListRepository.RemoveAutoAddedByUserId(userId);
 
         var manualItems = _shoppingListRepository.GetByUserId(userId).ToList();
@@ -44,38 +60,45 @@ public class ShoppingListService : IShoppingListService
 
         var grouped = ingredients
             .GroupBy(i => (IngredientNameNormalizer.NormalizeKey(i.IngredientBase.Name), i.Measurement.Id))
-            .Select(g => new ShoppingListItem
+            .Select(g => new
             {
-                UserId = userId,
-                IngredientBase = g.First().IngredientBase,
-                Measurement = g.First().Measurement,
-                Amount = g.Sum(i => i.Amount),
-                IsAutoAdded = true
+                IngredientBaseId = g.First().IngredientBase.Id,
+                IngredientName = g.First().IngredientBase.Name,
+                MeasurementId = g.First().Measurement.Id,
+                Amount = g.Sum(i => i.Amount)
             });
 
-        foreach (var item in grouped)
+        foreach (var entry in grouped)
         {
-            if (dismissed.Contains(item.IngredientBase.Id))
+            if (dismissed.Contains(entry.IngredientBaseId))
                 continue;
 
-            var normalizedName = IngredientNameNormalizer.NormalizeKey(item.IngredientBase.Name);
+            var normalizedName = IngredientNameNormalizer.NormalizeKey(entry.IngredientName);
             var alreadyCovered = manualItems.Any(m =>
                 string.Equals(
                     IngredientNameNormalizer.NormalizeKey(m.IngredientBase.Name),
                     normalizedName,
                     StringComparison.OrdinalIgnoreCase) &&
-                m.MeasurementId == item.Measurement.Id);
+                m.MeasurementId == entry.MeasurementId);
             if (alreadyCovered)
                 continue;
 
-            if (pantryAmounts.TryGetValue((item.IngredientBase.Id, item.Measurement.Id), out var inPantry))
+            var amount = entry.Amount;
+            if (pantryAmounts.TryGetValue((entry.IngredientBaseId, entry.MeasurementId), out var inPantry))
             {
-                item.Amount -= inPantry;
-                if (item.Amount <= 0)
+                amount -= inPantry;
+                if (amount <= 0)
                     continue;
             }
 
-            _shoppingListRepository.Add(item);
+            _shoppingListRepository.Add(new ShoppingListItem
+            {
+                UserId = userId,
+                IngredientBaseId = entry.IngredientBaseId,
+                MeasurementId = entry.MeasurementId,
+                Amount = amount,
+                IsAutoAdded = true
+            });
         }
     }
 

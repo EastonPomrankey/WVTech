@@ -1,3 +1,4 @@
+using MealPlanner.Helpers;
 using MealPlanner.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,10 +7,12 @@ namespace MealPlanner.Services;
 public class NutritionProgressService : INutritionProgressService
 {
     private readonly MealPlannerDBContext _db;
+    private readonly IExternalRecipeService? _externalRecipeService;
 
-    public NutritionProgressService(MealPlannerDBContext db)
+    public NutritionProgressService(MealPlannerDBContext db, IExternalRecipeService? externalRecipeService = null)
     {
         _db = db;
+        _externalRecipeService = externalRecipeService;
     }
 
     public Task<NutritionProgressDto> GetDailyProgressAsync(string userId, DateOnly day)
@@ -45,6 +48,8 @@ public class NutritionProgressService : INutritionProgressService
                 .Select(mc => mc.Meal)
                 .ToListAsync();
 
+        await completedMeals.LoadExternalRecipesAsync(_externalRecipeService);
+
         var totals = new MacroTotals(
             Calories: completedMeals.Sum(m => m.Recipes.Sum(r => r.Calories)),
             Protein: completedMeals.Sum(m => m.Recipes.Sum(r => r.Protein)),
@@ -76,6 +81,7 @@ public class NutritionProgressService : INutritionProgressService
                 .ThenInclude(m => m.Recipes)
             .ToListAsync();
 
+        await completions.LoadExternalRecipesAsync(_externalRecipeService);
         var byDay = completions
             .GroupBy(mc => DateOnly.FromDateTime(mc.CompletionDate))
             .ToDictionary(g => g.Key, g => new DailyNutritionDto(

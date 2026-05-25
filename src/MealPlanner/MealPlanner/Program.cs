@@ -166,12 +166,17 @@ if (builder.Configuration["NoApi"] != "true")
     string edamamAppId = builder.Configuration.GetSection("Edamam")["AppId"];
     string edamamAPIKey = builder.Configuration.GetSection("Edamam")["ApiKey"];
     string edamamAPIUrl = "https://api.edamam.com/api/";
-    builder.Services.AddHttpClient<IExternalRecipeService, EdamamService>(httpClient =>
+    builder.Services.AddHttpClient<IExternalRecipeService, EdamamService>((httpClient, sp) =>
     {
         httpClient.BaseAddress = new Uri(edamamAPIUrl);
         httpClient.DefaultRequestHeaders.Add("accept", "application/json");
         httpClient.DefaultRequestHeaders.Add("Accept-Language", "en");
-        return new EdamamService(httpClient, edamamAppId, edamamAPIKey);
+        return new EdamamService(
+            httpClient,
+            edamamAppId,
+            edamamAPIKey,
+            sp.GetRequiredService<IIngredientBaseRepository>(),
+            sp.GetRequiredService<IMeasurementRepository>());
     });
 }
 
