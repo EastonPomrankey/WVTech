@@ -1,0 +1,21 @@
+@model string
+@{
+    ViewData["Title"] = "External Recipe";
+}
+
+<link rel="stylesheet" href="~/css/singleRecipe.css" asp-append-version="true" />
+
+<div class="container mt-4">
+    <a href="javascript:history.back()" class="page-back-link">
+        <i class="ti ti-arrow-left"></i>
+        Back
+    </a>
+    <div class="back2 mt-3 p-4">
+        <h2 class="back1Title">External Recipe</h2>
+        <p>This recipe is hosted by an external source. Click the button below to view the full instructions in a new tab.</p>
+        <a id="view-external-recipe-link" href="@Model" target="_blank" rel="noopener noreferrer" class="sr-edit-btn">
+            <i class="ti ti-external-link"></i>
+            View Full Recipe
+        </a>
+    </div>
+</div>

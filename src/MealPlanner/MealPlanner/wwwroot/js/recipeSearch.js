@@ -219,7 +219,8 @@ function renderRecipeRows(recipes)
     {
         const row    = rowTemplate.contents().clone(true);
         const rating = (recipe.votePercentage * 100).toFixed(0) + "%";
-        $(row).attr("externalUri", recipe.externalUri);
+        $(row).attr("externalUri", recipe.externalUri ?? "");
+        $(row).attr("data-sourceurl", recipe.sourceUrl ?? "");
         if (recipe.externalUri) $(".row-end", row).text("");
         $(".recipeName", row).text(recipe.name);
         $(".recipeId", row).text(recipe.id);

@@ -23,7 +23,7 @@ public class EdamamService:IExternalRecipeService
     
     public async Task<IEnumerable<RecipeDTO>> SearchExternalRecipesByName(string recipeName)
     {
-        string endpoint = $"recipes/v2?type=any&q={recipeName}&app_id={_appId}&app_key={_apiKey}&field=uri&field=label&field=image";
+        string endpoint = $"recipes/v2?type=any&q={recipeName}&app_id={_appId}&app_key={_apiKey}&field=uri&field=label&field=image&field=url";
 
         HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
         if (!response.IsSuccessStatusCode)
@@ -37,13 +37,19 @@ public class EdamamService:IExternalRecipeService
             responseBody,
             _responseDeserializerOptions
         );
-        return edamamResponse?.Hits.Select(e => new RecipeDTO { Name = e.Recipe.Label, ExternalUri = e.Recipe.Uri, ImageUrl = e.Recipe.Image }) ?? [];
+        return edamamResponse?.Hits.Select(e => new RecipeDTO
+        {
+            Name = e.Recipe.Label,
+            ExternalUri = e.Recipe.Uri,
+            ImageUrl = e.Recipe.Image,
+            SourceUrl = e.Recipe.Url
+        }) ?? [];
     }
 
     public async Task<Recipe?> GetExternalRecipeByURI(string uri)
     {
         uri = WebUtility.UrlEncode(uri);
-        string endpoint = $"recipes/v2/by-uri?uri={uri}&app_id={_appId}&app_key={_apiKey}";
+        string endpoint = $"recipes/v2/by-uri?uri={uri}&app_id={_appId}&app_key={_apiKey}&field=uri&field=label&field=image&field=url&field=ingredients&field=totalNutrients&field=dietLabels&field=healthLabels&field=cuisineType&field=mealType&field=dishType";
         
         HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
         if (!response.IsSuccessStatusCode)
@@ -63,6 +69,7 @@ public class EdamamService:IExternalRecipeService
             {
                 Name = e.Recipe.Label,
                 ExternalUri = e.Recipe.Uri,
+                SourceUrl = e.Recipe.Url,
                 Directions = "",
                 Calories = (int?) e.Recipe.TotalNutrients?["ENERC_KCAL"]?.Quantity ?? 0,
                 Protein = (int?) e.Recipe.TotalNutrients?["PROCNT"]?.Quantity ?? 0,

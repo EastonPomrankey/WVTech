@@ -8,17 +8,15 @@ async function goToView(event) {
     if ($(event.target).closest(".favoriteForm").length > 0) return;
 
     let id = Number($(this).find(".recipeId").text().trim());
-    
-    const externalUri = encodeURIComponent($(this).attr("externaluri"));
-    if (!id && externalUri) 
-    {
+    const externalUri = $(this).attr("externaluri");
+
+    if (!id && externalUri) {
         const recipeName = encodeURIComponent($(".recipeName", this).text());
-        const externalUrl = API_ROUTE + `external?recipeName=${recipeName}&externalUri=${externalUri}`;
-        
-        const response = await fetch(externalUrl);
+        const encodedUri = encodeURIComponent(externalUri);
+        const response = await fetch(API_ROUTE + `external?recipeName=${recipeName}&externalUri=${encodedUri}`);
         if (!response.ok) return;
         id = await response.json();
     }
 
-    location.href = `/FoodEntries/Recipes/${id}`;
+    if (id) location.href = `/FoodEntries/Recipes/${id}`;
 }
