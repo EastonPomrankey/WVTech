@@ -68,6 +68,7 @@ public class ShoppingController : Controller
     }
 
     [HttpGet]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Index()
     {
         User? user = await _userManager.GetUserAsync(User);
