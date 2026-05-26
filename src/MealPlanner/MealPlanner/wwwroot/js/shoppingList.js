@@ -26,18 +26,6 @@ function scheduleSubmit() {
 }
 
 document.querySelectorAll(".date-range-input").forEach((input) => {
-  // change fires whenever a section completes and the full date becomes valid.
-  // Debounce so the user can edit all three sections before the form submits.
-  input.addEventListener("change", function () {
-    if (!this.value) {
-      this.classList.add("date-invalid");
-      clearTimeout(_debounceTimer);
-      return;
-    }
-    this.classList.remove("date-invalid");
-    scheduleSubmit();
-  });
-
   // Show red border while the value is incomplete (value is "" mid-type).
   input.addEventListener("input", function () {
     if (this.value) {
@@ -47,8 +35,9 @@ document.querySelectorAll(".date-range-input").forEach((input) => {
     }
   });
 
-  // On blur: user left the field — cancel any pending debounce and commit now.
-  // If empty, revert to today first.
+  // On blur: if the field is empty revert to today and let the AJAX path
+  // pick it up.  If the AJAX path is not already in flight, fall back to a
+  // form submit so the date range is always committed.
   input.addEventListener("blur", function () {
     clearTimeout(_debounceTimer);
     if (!this.value) {
@@ -57,7 +46,12 @@ document.querySelectorAll(".date-range-input").forEach((input) => {
     } else {
       this.classList.remove("date-invalid");
     }
-    submitDateForm();
+    // Only submit the form if the AJAX path is not already handling this
+    // change (avoids a second concurrent sync when window.location.reload()
+    // is in progress from the AJAX conflict-detection path).
+    if (!_dateRangeController) {
+      submitDateForm();
+    }
   });
 });
 
@@ -177,6 +171,13 @@ document.addEventListener("click", async function (e) {
   }).catch(() => {});
 });
 
+document.addEventListener("keydown", function (e) {
+  if (!e.target.matches(".qty-input")) return;
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  e.target.blur();
+});
+
 document.addEventListener("focusin", function (e) {
   if (!e.target.matches(".qty-input")) return;
   clearError(e.target);
@@ -285,6 +286,11 @@ document.querySelectorAll(".date-range-input").forEach((input) => {
           { credentials: "same-origin", signal: _dateRangeController.signal }
         );
         if (resp.ok) {
+          if (resp.headers.get("X-Has-Conflicts") === "true") {
+            _submitting = true; // block any blur-triggered form submit during unload
+            window.location.reload();
+            return;
+          }
           container.innerHTML = await resp.text();
           ok = true;
         }
@@ -439,46 +445,88 @@ if (exportForm) {
   });
 }
 
-// ── Add-item form validation ─────────────────────────────────────
+// ── Auto-added conflict modal ────────────────────────────────────
+const acpModal = document.getElementById('sl-acp-modal');
+if (acpModal) {
+  acpModal.style.display = 'flex';
+
+  document.getElementById('sl-acp-reject-all')?.addEventListener('click', () => {
+    acpModal.querySelectorAll('.sl-acp-check').forEach(cb => cb.checked = true);
+    document.getElementById('sl-conflicts-form')?.submit();
+  });
+
+  document.getElementById('sl-acp-accept-all')?.addEventListener('click', () => {
+    document.getElementById('sl-accept-form')?.submit();
+  });
+
+  acpModal.addEventListener('click', function (e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+}
+
+// ── Add-item form: validation + conflict check ───────────────────
+let _conflictForm = null;
+let _conflictIds  = [];
+
+function validateAddForm(form) {
+  const amountInput   = form.querySelector('[name="amount"]');
+  const measureSelect = form.querySelector('[name="measurement"]');
+  const nameInput     = form.querySelector('[name="itemName"]');
+  const missing = [];
+
+  if (!amountInput.value || parseAmountFloat(amountInput.value) <= 0) {
+    markError(amountInput);
+    missing.push('a quantity greater than 0 (e.g. 2, 1.5, or 1/2)');
+  } else { clearError(amountInput); }
+
+  if (!measureSelect.value) {
+    markError(measureSelect);
+    missing.push('a measurement unit');
+  } else { clearError(measureSelect); }
+
+  if (!nameInput.value.trim()) {
+    markError(nameInput);
+    missing.push('an ingredient name');
+  } else { clearError(nameInput); }
+
+  if (missing.length > 0) {
+    const last = missing.pop();
+    showLiveAlert('danger', missing.length
+      ? `Please enter ${missing.join(', ')} and ${last}.`
+      : `Please enter ${last}.`);
+    return false;
+  }
+  return true;
+}
+
 const addItemForm = document.querySelector('.sl-add-row');
 if (addItemForm) {
-  addItemForm.addEventListener('submit', function (e) {
-    const amountInput   = this.querySelector('[name="amount"]');
-    const measureSelect = this.querySelector('[name="measurement"]');
-    const nameInput     = this.querySelector('[name="itemName"]');
+  addItemForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (!validateAddForm(this)) return;
 
-    const missing = [];
-    const amount = parseAmountFloat(amountInput.value);
+    const itemName    = this.querySelector('[name="itemName"]').value.trim();
+    const measurement = this.querySelector('[name="measurement"]').value;
 
-    if (!amountInput.value || amount <= 0) {
-      markError(amountInput);
-      missing.push('a quantity greater than 0 (e.g. 2, 1.5, or 1/2)');
-    } else {
-      clearError(amountInput);
-    }
+    try {
+      const resp = await fetch(
+        `/Shopping/FindConflictsJson?ingredientName=${encodeURIComponent(itemName)}&measurementName=${encodeURIComponent(measurement)}`
+      );
+      if (resp.ok) {
+        const conflicts = await resp.json();
+        if (conflicts.length > 0) {
+          _conflictForm = this;
+          _conflictIds  = conflicts.map(c => c.id);
+          const existing = conflicts.map(c => `${c.amount} ${c.measurementAbbrev}`).join(', ');
+          document.getElementById('sl-conflict-modal-body').textContent =
+            `You already have ${existing} ${itemName} on your list. What would you like to do?`;
+          document.getElementById('sl-conflict-modal').style.display = 'flex';
+          return;
+        }
+      }
+    } catch { /* network error — proceed */ }
 
-    if (!measureSelect.value) {
-      markError(measureSelect);
-      missing.push('a measurement unit');
-    } else {
-      clearError(measureSelect);
-    }
-
-    if (!nameInput.value.trim()) {
-      markError(nameInput);
-      missing.push('an ingredient name');
-    } else {
-      clearError(nameInput);
-    }
-
-    if (missing.length > 0) {
-      e.preventDefault();
-      const last = missing.pop();
-      const msg = missing.length
-        ? `Please enter ${missing.join(', ')} and ${last}.`
-        : `Please enter ${last}.`;
-      showLiveAlert('danger', msg);
-    }
+    this.submit();
   });
 
   addItemForm.querySelectorAll('input, select').forEach(el => {
@@ -486,3 +534,36 @@ if (addItemForm) {
     el.addEventListener('change', () => clearError(el));
   });
 }
+
+function closeConflictModal() {
+  document.getElementById('sl-conflict-modal').style.display = 'none';
+  _conflictForm = null;
+  _conflictIds  = [];
+}
+
+document.getElementById('sl-conflict-cancel')?.addEventListener('click', closeConflictModal);
+
+document.getElementById('sl-conflict-keep')?.addEventListener('click', function () {
+  const form = _conflictForm;
+  closeConflictModal();
+  if (form) form.submit();
+});
+
+document.getElementById('sl-conflict-replace')?.addEventListener('click', function () {
+  const form = _conflictForm;
+  const ids  = [..._conflictIds];
+  closeConflictModal();
+  if (!form) return;
+  ids.forEach(id => {
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = 'replaceIds';
+    input.value = id;
+    form.appendChild(input);
+  });
+  form.submit();
+});
+
+document.getElementById('sl-conflict-modal')?.addEventListener('click', function (e) {
+  if (e.target === this) closeConflictModal();
+});

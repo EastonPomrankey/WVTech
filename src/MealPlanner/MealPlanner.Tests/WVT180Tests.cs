@@ -62,7 +62,6 @@ public class WVT180AddToPantryTests
             userManagerMock.Object,
             null!,
             _registrationServiceMock.Object,
-            Mock.Of<IMeasurementRepository>(),
             _context);
 
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(
@@ -252,7 +251,6 @@ public class WVT180SkipAddToPantryTests
             userManagerMock.Object,
             null!,
             Mock.Of<IRegistrationService>(),
-            Mock.Of<IMeasurementRepository>(),
             _context);
 
         var httpContext = new DefaultHttpContext { Session = _session };
@@ -325,7 +323,8 @@ public class WVT180KrogerCaptureTests
             _shoppingListRepoMock.Object,
             Mock.Of<IMealRepository>(),
             Mock.Of<IIngredientBaseRepository>(),
-            Mock.Of<IRepository<Measurement>>());
+            Mock.Of<IMeasurementRepository>(),
+            Mock.Of<IMeasurementConversionRepository>());
 
         var userSettingsMock = new Mock<IUserSettingsRepository>();
         userSettingsMock

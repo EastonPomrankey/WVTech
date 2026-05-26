@@ -128,7 +128,18 @@
                     <span class="sr-card-icon"><i class="ti ti-list"></i></span>
                     <span class="sr-card-label">Instructions</span>
                 </div>
-                <p class="sr-instructions-text">@Model.Directions</p>
+                @if (!string.IsNullOrEmpty(Model.SourceUrl))
+                {
+                    <p class="sr-instructions-text">Full directions are available at the original recipe source.</p>
+                    <a id="view-source-recipe-link" href="@Model.SourceUrl" target="_blank" rel="noopener noreferrer" class="sr-edit-btn mt-2">
+                        <i class="ti ti-external-link"></i>
+                        View Full Recipe
+                    </a>
+                }
+                else
+                {
+                    <p class="sr-instructions-text">@Model.Directions</p>
+                }
             </div>
 
             @if (Model.IsOwned)

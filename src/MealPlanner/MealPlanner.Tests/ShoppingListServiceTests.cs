@@ -14,7 +14,8 @@ public class ShoppingListServiceTests
     private Mock<IShoppingListRepository> _repo;
     private Mock<IMealRepository> _mealRepo;
     private Mock<IIngredientBaseRepository> _ingredientBaseRepo;
-    private Mock<IRepository<Measurement>> _measurementRepo;
+    private Mock<IMeasurementRepository> _measurementRepo;
+    private Mock<IMeasurementConversionRepository> _conversionRepo;
     private ShoppingListService _service;
 
     private static readonly Measurement _cup = new Measurement { Id = 1, Name = "Cup", Abbreviation = "cup" };
@@ -26,7 +27,9 @@ public class ShoppingListServiceTests
         _repo = new Mock<IShoppingListRepository>();
         _mealRepo = new Mock<IMealRepository>();
         _ingredientBaseRepo = new Mock<IIngredientBaseRepository>();
-        _measurementRepo = new Mock<IRepository<Measurement>>();
+        _measurementRepo = new Mock<IMeasurementRepository>();
+        _conversionRepo = new Mock<IMeasurementConversionRepository>();
+        _conversionRepo.Setup(r => r.GetConversionMap()).Returns([]);
 
         _ingredientBaseRepo
             .Setup(r => r.FindOrCreateByName(It.IsAny<string>()))
@@ -38,8 +41,9 @@ public class ShoppingListServiceTests
 
         _repo.Setup(r => r.GetByUserId(It.IsAny<string>())).Returns(new List<ShoppingListItem>());
         _repo.Setup(r => r.GetDismissedIngredientBaseIds(It.IsAny<string>())).Returns(new HashSet<int>());
+        _repo.Setup(r => r.GetDeclinedMeasurementPairs(It.IsAny<string>())).Returns(new HashSet<(int, int)>());
 
-        _service = new ShoppingListService(_repo.Object, _mealRepo.Object, _ingredientBaseRepo.Object, _measurementRepo.Object);
+        _service = new ShoppingListService(_repo.Object, _mealRepo.Object, _ingredientBaseRepo.Object, _measurementRepo.Object, _conversionRepo.Object);
     }
 
     private static Meal MealWithRecipe(Recipe recipe, int mealId = 0) =>
@@ -72,8 +76,8 @@ public class ShoppingListServiceTests
 
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today.AddDays(1));
 
-        _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBaseId == 1 && i.Amount == 2f
+        _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 2f)
         )), Times.Once);
     }
 
@@ -94,8 +98,8 @@ public class ShoppingListServiceTests
 
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today.AddDays(1));
 
-        _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBaseId == 1 && i.Amount == 3f
+        _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 3f)
         )), Times.Once);
     }
 
@@ -110,8 +114,8 @@ public class ShoppingListServiceTests
 
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today);
 
-        _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBaseId == 1 && i.Amount == 2f
+        _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 2f)
         )), Times.Once);
     }
 
@@ -124,7 +128,7 @@ public class ShoppingListServiceTests
 
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today);
 
-        _repo.Verify(r => r.Add(It.IsAny<ShoppingListItem>()), Times.Never);
+        _repo.Verify(r => r.AddAutoAddedBatch(It.IsAny<IEnumerable<ShoppingListItem>>()), Times.Never);
     }
 
     [Test]

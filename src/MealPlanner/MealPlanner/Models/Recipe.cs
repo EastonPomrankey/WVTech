@@ -34,6 +34,9 @@ public class Recipe
     // local Tag entities so the tag-based scorers can act on them. Transient:
     // never persisted (cached external rows are URI-only per Edamam's TOS).
     [NotMapped]
+    public string? SourceUrl { get; set; }
+
+    [NotMapped]
     public List<string> ExternalCategorization { get; set; } = [];
     public List<User> Users { get; } = [];
     public List<UserRecipe> UserRecipes { get; } = [];

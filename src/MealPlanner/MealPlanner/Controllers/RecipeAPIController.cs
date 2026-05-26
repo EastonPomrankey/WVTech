@@ -160,19 +160,42 @@ public class RecipeAPIController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetExternalRecipePage(string externalUri, string recipeName)
     {
-        if (_recipeService == null) return StatusCode(500);
-        Recipe? recipe = _recipeRepository.ReadRecipeByExternalUri(externalUri);
-        if (recipe != null) return Ok(recipe.Id);
+        // Load with ingredients so we can detect stubs (saved by MealRepository with no ingredients)
+        Recipe? existing = await _context.Set<Recipe>()
+            .AsNoTracking()
+            .Include(r => r.Ingredients)
+            .FirstOrDefaultAsync(r => r.ExternalUri == externalUri);
+
+        // Return early only if the recipe is already fully populated
+        if (existing != null && existing.Ingredients.Count > 0) return Ok(existing.Id);
 
         try
         {
-            recipe = new Recipe { Name = recipeName, ExternalUri = externalUri, Directions = "" };
-            _recipeRepository.CreateOrUpdate(recipe);
-            await _context.SaveChangesAsync();
+            Recipe? toSave = null;
+            if (_recipeService != null)
+            {
+                toSave = await _recipeService.GetExternalRecipeByURI(externalUri);
+            }
+
+            if (toSave != null)
+            {
+                if (existing != null)
+                    toSave.Id = existing.Id; // upgrade existing stub in-place
+                _recipeRepository.CreateOrUpdate(toSave);
+                await _context.SaveChangesAsync();
+            }
+            else if (existing == null)
+            {
+                // No API available and no record yet — save a minimal stub
+                toSave = new Recipe { Name = recipeName, ExternalUri = externalUri, Directions = "" };
+                _recipeRepository.CreateOrUpdate(toSave);
+                await _context.SaveChangesAsync();
+            }
         }
         catch (DbUpdateException) {}
+        catch (Exception e) { Console.WriteLine(e.Message); }
 
-        recipe = _recipeRepository.ReadRecipeByExternalUri(externalUri);
+        var recipe = _recipeRepository.ReadRecipeByExternalUri(externalUri);
         if (recipe == null) return StatusCode(500);
         return Ok(recipe.Id);
     }

@@ -4,6 +4,7 @@ using MealPlanner.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPlanner.Migrations
 {
     [DbContext(typeof(MealPlannerDBContext))]
-    partial class MealPlannerDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260522152926_WVT183_AddMeasurementConversions")]
+    partial class WVT183_AddMeasurementConversions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,9 +51,6 @@ namespace MealPlanner.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IngredientBaseId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MeasurementId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -194,9 +194,6 @@ namespace MealPlanner.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsGenerated")
                         .HasColumnType("bit");
 
                     b.Property<string>("RepeatDays")
@@ -376,6 +373,98 @@ namespace MealPlanner.Migrations
                         .HasFilter("[ExternalUri] IS NOT NULL");
 
                     b.ToTable("Recipe");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            Calories = 250,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Oatmeal Cookies",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -2,
+                            Calories = 400,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Spaghetti All'assassina",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -3,
+                            Calories = 1000,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Spaghetti and Meatballs",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -4,
+                            Calories = 350,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Vegan Spaghetti with Mushrooms",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -5,
+                            Calories = 400,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Baked Spaghetti Casserole",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -6,
+                            Calories = 550,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Mac 'n Cheese Casserole",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -7,
+                            Calories = 850,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Homemade Mac 'n Cheese",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -8,
+                            Calories = 400,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Mushroom Steak Salad",
+                            Protein = 0
+                        },
+                        new
+                        {
+                            Id = -9,
+                            Calories = 300,
+                            Carbs = 0,
+                            Directions = "",
+                            Fat = 0,
+                            Name = "Ceasar Salad",
+                            Protein = 0
+                        });
                 });
 
             modelBuilder.Entity("MealPlanner.Models.ShoppingListItem", b =>
@@ -400,9 +489,6 @@ namespace MealPlanner.Migrations
 
                     b.Property<int>("MeasurementId")
                         .HasColumnType("int");
-
-                    b.Property<float>("RecipeContributionAmountInBase")
-                        .HasColumnType("real");
 
                     b.Property<string>("UserId")
                         .IsRequired()

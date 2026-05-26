@@ -151,7 +151,10 @@ public class WVT158Steps
 
         var manualItem = items.FirstOrDefault(i => !i.IsAutoAdded);
         Assert.That(manualItem, Is.Not.Null, "Manual item should still exist");
-        Assert.That(manualItem!.Amount, Is.EqualTo(ManualAmount), "Manual item amount should not have been accumulated into");
+        // WVT-183: manual add merges with the auto-added recipe contribution, so the
+        // combined amount is ManualAmount + AutoAmount. Syncing again must not grow further.
+        Assert.That(manualItem!.Amount, Is.EqualTo(ManualAmount + AutoAmount),
+            "Manual item amount should reflect user portion plus recipe contribution without further accumulation");
     }
 
     [Then("the manually added WVT158 ingredient is still on the shopping list")]

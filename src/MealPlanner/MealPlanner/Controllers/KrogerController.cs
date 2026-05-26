@@ -21,12 +21,12 @@ public class KrogerController : Controller
     private readonly IKrogerService? _krogerService;
     private readonly IKrogerExportService _exportService;
     private readonly IUserSettingsRepository _userSettingsRepo;
-    private readonly ShoppingListService _shoppingListService;
+    private readonly IShoppingListService _shoppingListService;
     private readonly UserManager<User> _userManager;
 
     public KrogerController(
         IUserSettingsRepository userSettingsRepo,
-        ShoppingListService shoppingListService,
+        IShoppingListService shoppingListService,
         UserManager<User> userManager,
         IKrogerExportService exportService,
         IKrogerService? krogerService = null)
@@ -199,6 +199,8 @@ public class KrogerController : Controller
                 return RedirectToAction("Index", "Shopping");
 
             case KrogerExportOutcome.Success:
+                _shoppingListService.ClearItems(userId);
+                TempData["SkipSync"] = true;
                 HttpContext.Response.Cookies.Append("ShoppingListSynced", "1", new CookieOptions { HttpOnly = true });
                 TempData["KrogerSuccess"] = result.Skipped.Count == 0
                     ? $"{result.ItemsAdded} item(s) added to your Kroger cart!"
