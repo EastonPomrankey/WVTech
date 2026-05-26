@@ -11,18 +11,18 @@ public class ShoppingListService : IShoppingListService
     private readonly IMeasurementRepository _measurementRepo;
     private readonly IMeasurementConversionRepository _conversionRepo;
 
-    public ShoppingListService(IShoppingListRepository shoppingListRepository, IMealRepository mealRepository, IIngredientBaseRepository ingredientBaseRepo, IMeasurementRepository measurementRepo, IMeasurementConversionRepository conversionRepo)
+    public ShoppingListService(
+        IShoppingListRepository shoppingListRepository,
+        IMealRepository mealRepository,
+        IIngredientBaseRepository ingredientBaseRepo,
+        IMeasurementRepository measurementRepo,
+        IMeasurementConversionRepository conversionRepo)
     {
         _shoppingListRepository = shoppingListRepository;
         _mealRepository = mealRepository;
         _ingredientBaseRepo = ingredientBaseRepo;
         _measurementRepo = measurementRepo;
         _conversionRepo = conversionRepo;
-    }
-
-    public void ClearMeasurementDeclines(string userId)
-    {
-        _shoppingListRepository.ClearMeasurementDeclines(userId);
     }
 
     public async Task SyncFromDateRangeAsync(string userId, User user, DateTime dateFrom, DateTime dateTo)
@@ -46,111 +46,97 @@ public class ShoppingListService : IShoppingListService
 
         // Collapse same ingredient+unit combinations first (preserving original units)
         var byNameAndUnit = ingredients
+            .Where(i => i.IngredientBase != null && i.Measurement != null)
             .GroupBy(i => (IngredientNameNormalizer.NormalizeKey(i.IngredientBase.Name), i.Measurement.Id))
-            .Select(g => (
-                NormalizedName: g.Key.Item1,
-                IngredientBase: g.First().IngredientBase,
-                Measurement: g.First().Measurement,
-                Amount: g.Sum(i => i.Amount)
+            .Select(g => new
+            {
+                IngredientBaseId = g.First().IngredientBase.Id,
+                IngredientName = g.First().IngredientBase.Name,
+                MeasurementId = g.First().Measurement.Id,
+                Amount = g.Sum(i => i.Amount)
+            });
+
+        // Group by (normalized name, base unit) to merge compatible measurements
+        var grouped = byNameAndUnit
+            .GroupBy(e => (
+                IngredientNameNormalizer.NormalizeKey(e.IngredientName),
+                conversionMap.TryGetValue(e.MeasurementId, out var c) ? c.ToMeasurementId : e.MeasurementId
             ))
-            .ToList();
-
-        // Merge compatible units per ingredient; keep original unit when only one unit is used
-        var grouped = new List<ShoppingListItem>();
-        foreach (var nameGroup in byNameAndUnit.GroupBy(g => g.NormalizedName))
-        {
-            var subGroups = nameGroup.ToList();
-
-            if (subGroups.Count == 1)
+            .Select(g =>
             {
-                var sg = subGroups[0];
-                grouped.Add(new ShoppingListItem
+                var best = g.OrderBy(e =>
+                    conversionMap.TryGetValue(e.MeasurementId, out var mc) ? mc.Factor : 1f).First();
+                float amountInBase = g.Sum(e =>
+                    conversionMap.TryGetValue(e.MeasurementId, out var mc2) ? e.Amount * mc2.Factor : e.Amount);
+                int baseUnitId = conversionMap.TryGetValue(best.MeasurementId, out var bc)
+                    ? bc.ToMeasurementId : best.MeasurementId;
+                return new
                 {
-                    UserId = userId,
-                    IngredientBase = sg.IngredientBase,
-                    Measurement = sg.Measurement,
-                    Amount = sg.Amount,
-                    IsAutoAdded = true
-                });
-            }
-            else
-            {
-                foreach (var familyGroup in subGroups.GroupBy(sg =>
-                    conversionMap.TryGetValue(sg.Measurement.Id, out var conv)
-                        ? conv.ToMeasurementId
-                        : sg.Measurement.Id))
-                {
-                    int baseMeasurementId = familyGroup.Key;
-                    var baseMeasurement = measurementsById.TryGetValue(baseMeasurementId, out var bm)
-                        ? bm : familyGroup.First().Measurement;
-
-                    float totalAmount = familyGroup.Sum(sg =>
-                        conversionMap.TryGetValue(sg.Measurement.Id, out var conv)
-                            ? sg.Amount * conv.Factor
-                            : sg.Amount);
-
-                    grouped.Add(new ShoppingListItem
-                    {
-                        UserId = userId,
-                        IngredientBase = familyGroup.First().IngredientBase,
-                        Measurement = baseMeasurement,
-                        Amount = totalAmount,
-                        IsAutoAdded = true
-                    });
-                }
-            }
-        }
+                    best.IngredientBaseId,
+                    best.IngredientName,
+                    best.MeasurementId,
+                    AmountInBase = amountInBase,
+                    BaseUnitId = baseUnitId
+                };
+            });
 
         var toAdd = new List<ShoppingListItem>();
         var updatedManualIds = new HashSet<int>();
 
-        foreach (var item in grouped)
+        foreach (var entry in grouped)
         {
-            if (dismissed.Contains(item.IngredientBase.Id))
+            if (dismissed.Contains(entry.IngredientBaseId))
                 continue;
 
-            if (declinedPairs.Contains((item.IngredientBase.Id, item.Measurement.Id)))
+            if (declinedPairs.Contains((entry.IngredientBaseId, entry.MeasurementId)))
                 continue;
 
-            bool hasConv = conversionMap.TryGetValue(item.Measurement.Id, out var recipeConv);
-            float recipeContribInBase = hasConv ? item.Amount * recipeConv.Factor : item.Amount;
-            int recipeBaseId = hasConv ? recipeConv.ToMeasurementId : item.Measurement.Id;
+            var normalizedName = IngredientNameNormalizer.NormalizeKey(entry.IngredientName);
 
-            var normalizedName = IngredientNameNormalizer.NormalizeKey(item.IngredientBase.Name);
-            var compatibleManual = manualItems.FirstOrDefault(m =>
-                string.Equals(IngredientNameNormalizer.NormalizeKey(m.IngredientBase.Name), normalizedName, StringComparison.OrdinalIgnoreCase)
-                && (conversionMap.TryGetValue(m.MeasurementId, out var mc)
-                    ? mc.ToMeasurementId : m.MeasurementId) == recipeBaseId);
+            var compatible = manualItems.Where(m =>
+                IngredientNameNormalizer.NormalizeKey(m.IngredientBase.Name) == normalizedName &&
+                (conversionMap.TryGetValue(m.MeasurementId, out var mc) ? mc.ToMeasurementId : m.MeasurementId) == entry.BaseUnitId
+            ).ToList();
 
-            if (compatibleManual != null)
+            if (compatible.Count > 0)
             {
-                float userPure = MathF.Max(0f,
-                    ToBase(compatibleManual.Amount, compatibleManual.MeasurementId, conversionMap)
-                    - compatibleManual.RecipeContributionAmountInBase);
-                float newTotalInBase = userPure + recipeContribInBase;
-                // Convert back to the item's own unit so Amount stays consistent with MeasurementId.
-                float newAmountInItemUnit = conversionMap.TryGetValue(compatibleManual.MeasurementId, out var itemConv)
-                    ? newTotalInBase / itemConv.Factor
-                    : newTotalInBase;
+                var manual = compatible.First();
+                float existingInBase = ToBase(manual.Amount, manual.MeasurementId, conversionMap);
+                float pureUserInBase = MathF.Max(0f, existingInBase - manual.RecipeContributionAmountInBase);
+                float totalInBase = pureUserInBase + entry.AmountInBase;
+                float newAmount = conversionMap.TryGetValue(manual.MeasurementId, out var manConv)
+                    ? totalInBase / manConv.Factor
+                    : totalInBase;
                 _shoppingListRepository.UpdateAmountAndRecipeContribution(
-                    userId, compatibleManual.Id,
-                    newAmountInItemUnit,
-                    recipeContribInBase);
-                updatedManualIds.Add(compatibleManual.Id);
+                    userId, manual.Id, newAmount, entry.AmountInBase);
+                updatedManualIds.Add(manual.Id);
             }
             else
             {
-                toAdd.Add(item);
+                if (!measurementsById.ContainsKey(entry.MeasurementId))
+                    continue;
+
+                float addAmount = conversionMap.TryGetValue(entry.MeasurementId, out var addConv)
+                    ? entry.AmountInBase / addConv.Factor
+                    : entry.AmountInBase;
+
+                toAdd.Add(new ShoppingListItem
+                {
+                    UserId = userId,
+                    IngredientBaseId = entry.IngredientBaseId,
+                    MeasurementId = entry.MeasurementId,
+                    Amount = addAmount,
+                    IsAutoAdded = true
+                });
             }
         }
 
-        // Recipe removed: zero out the stale recipe contribution from any manual item not updated
+        // Zero out stale recipe contribution from manual items not touched this sync
         foreach (var manual in manualItems.Where(m => m.RecipeContributionAmountInBase > 0 && !updatedManualIds.Contains(m.Id)))
         {
             float userPure = MathF.Max(0f,
                 ToBase(manual.Amount, manual.MeasurementId, conversionMap)
                 - manual.RecipeContributionAmountInBase);
-            // Convert back to the item's own unit.
             float restoredInItemUnit = conversionMap.TryGetValue(manual.MeasurementId, out var restoreConv)
                 ? userPure / restoreConv.Factor
                 : userPure;
@@ -159,6 +145,11 @@ public class ShoppingListService : IShoppingListService
 
         if (toAdd.Count > 0)
             _shoppingListRepository.AddAutoAddedBatch(toAdd);
+    }
+
+    public void ClearMeasurementDeclines(string userId)
+    {
+        _shoppingListRepository.ClearMeasurementDeclines(userId);
     }
 
     public void AddItem(string userId, string itemName, float amount, string measurement, string? displayAmount = null)
@@ -195,7 +186,6 @@ public class ShoppingListService : IShoppingListService
         {
             float existingTotalInBase = MathF.Max(0f,
                 compatible.Sum(i => ToBase(i.Amount, i.MeasurementId, conversionMap)));
-            // Auto-added items are entirely recipe contribution; manual items track their own.
             float existingRecipeContrib = compatible.Sum(i =>
                 i.IsAutoAdded
                     ? MathF.Max(0f, ToBase(i.Amount, i.MeasurementId, conversionMap))
@@ -205,7 +195,6 @@ public class ShoppingListService : IShoppingListService
             foreach (var old in compatible)
                 _shoppingListRepository.DeleteWithoutDismiss(old.Id, userId);
 
-            // Store in the largest compatible unit (e.g. cups instead of tsp) for readability.
             float bestFactor = newHasConv ? newConv.Factor : 1f;
             int bestMeasurementId = measurementEntity.Id;
             foreach (var mid in compatible.Select(i => i.MeasurementId).Distinct())
@@ -287,9 +276,6 @@ public class ShoppingListService : IShoppingListService
 
         foreach (var item in allItems.Where(i => idsToRemove.Contains(i.Id)))
         {
-            // Decline only this specific measurement — the ingredient itself is not
-            // blocked, so other measurements (e.g. tsp vs count) can still be
-            // auto-added from recipes on future syncs.
             _shoppingListRepository.DismissByMeasurement(userId, item.IngredientBase.Id, item.MeasurementId);
             _shoppingListRepository.DeleteWithoutDismiss(item.Id, userId);
         }

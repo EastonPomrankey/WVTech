@@ -110,7 +110,7 @@ public class PantrySyncTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, System.DateTime.Today, System.DateTime.Today);
 
         _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBase.Id == butter.Id && i.Amount == 2f
+            i.IngredientBaseId == butter.Id && i.Amount == 2f
         )), Times.Once);
     }
 
@@ -128,7 +128,7 @@ public class PantrySyncTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, System.DateTime.Today, System.DateTime.Today);
 
         _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBase.Id == milk.Id && i.Amount == 2f
+            i.IngredientBaseId == milk.Id && i.Amount == 2f
         )), Times.Once);
     }
 
@@ -144,7 +144,7 @@ public class PantrySyncTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, System.DateTime.Today, System.DateTime.Today);
 
         _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBase.Id == egg.Id && i.Amount == 2f
+            i.IngredientBaseId == egg.Id && i.Amount == 2f
         )), Times.Once);
     }
 
@@ -167,7 +167,7 @@ public class PantrySyncTests
         await serviceWithoutPantry.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, System.DateTime.Today, System.DateTime.Today);
 
         _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBase.Id == oil.Id && i.Amount == 1f
+            i.IngredientBaseId == oil.Id && i.Amount == 1f
         )), Times.Once);
     }
 
@@ -188,7 +188,7 @@ public class PantrySyncTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, System.DateTime.Today, System.DateTime.Today);
 
         _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBase.Id == rice.Id && i.Amount == 1f // 4 - 3 = 1
+            i.IngredientBaseId == rice.Id && i.Amount == 1f // 4 - 3 = 1
         )), Times.Once);
     }
 }

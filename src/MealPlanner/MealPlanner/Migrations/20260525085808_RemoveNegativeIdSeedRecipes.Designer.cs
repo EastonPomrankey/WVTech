@@ -4,6 +4,7 @@ using MealPlanner.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPlanner.Migrations
 {
     [DbContext(typeof(MealPlannerDBContext))]
-    partial class MealPlannerDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260525085808_RemoveNegativeIdSeedRecipes")]
+    partial class RemoveNegativeIdSeedRecipes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,9 +51,6 @@ namespace MealPlanner.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("IngredientBaseId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MeasurementId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -313,28 +313,6 @@ namespace MealPlanner.Migrations
                     b.ToTable("Measurement");
                 });
 
-            modelBuilder.Entity("MealPlanner.Models.MeasurementConversion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<float>("Factor")
-                        .HasColumnType("real");
-
-                    b.Property<int>("FromMeasurementId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ToMeasurementId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MeasurementConversion");
-                });
-
             modelBuilder.Entity("MealPlanner.Models.Recipe", b =>
                 {
                     b.Property<int>("Id")
@@ -400,9 +378,6 @@ namespace MealPlanner.Migrations
 
                     b.Property<int>("MeasurementId")
                         .HasColumnType("int");
-
-                    b.Property<float>("RecipeContributionAmountInBase")
-                        .HasColumnType("real");
 
                     b.Property<string>("UserId")
                         .IsRequired()

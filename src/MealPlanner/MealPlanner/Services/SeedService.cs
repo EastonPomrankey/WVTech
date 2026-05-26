@@ -378,64 +378,81 @@ public class SeedService
         Dictionary<string, Measurement> measurementsByName = (await context.Set<Measurement>().ToListAsync())
             .ToDictionary(m => m.Name, StringComparer.OrdinalIgnoreCase);
 
-        HashSet<string> existingNames = (await context.Recipes
-            .Select(r => r.Name)
+        // Duplicate names can exist (user-created recipes, empty-name test data, etc.)
+        // — keep the first occurrence for each name so the seed update path is stable.
+        Dictionary<string, Recipe> existingByName = (await context.Recipes
+            .Include(r => r.Tags)
+            .Include(r => r.Ingredients)
             .ToListAsync())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .GroupBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-        List<Recipe> recipes = RecipeSeedData.GetRecipes();
-        int seededCount = 0;
+        List<Recipe> seedRecipes = RecipeSeedData.GetRecipes();
+        int added = 0, updated = 0;
 
-        foreach (Recipe recipe in recipes)
+        foreach (Recipe seedRecipe in seedRecipes)
         {
-            if (existingNames.Contains(recipe.Name))
-            {
-                logger.LogInformation("Recipe '{Name}' already exists; skipping.", recipe.Name);
-                continue;
-            }
-            List<Tag> resolvedTags = new(recipe.Tags.Count);
-            foreach (Tag tagShell in recipe.Tags)
+            // Resolve tags against tracked DB entities.
+            List<Tag> resolvedTags = new(seedRecipe.Tags.Count);
+            foreach (Tag tagShell in seedRecipe.Tags)
             {
                 if (!tagsByName.TryGetValue(tagShell.Name, out Tag? tag))
                 {
                     throw new InvalidOperationException(
-                        $"Seed recipe '{recipe.Name}' references unknown tag '{tagShell.Name}'. Add it to SeedTagsAsync.");
+                        $"Seed recipe '{seedRecipe.Name}' references unknown tag '{tagShell.Name}'. Add it to SeedTagsAsync.");
                 }
                 resolvedTags.Add(tag);
             }
-            recipe.Tags.Clear();
-            recipe.Tags.AddRange(resolvedTags);
 
-            foreach (Ingredient ingredient in recipe.Ingredients)
+            // Resolve ingredient bases and measurements against tracked DB entities.
+            foreach (Ingredient ingredient in seedRecipe.Ingredients)
             {
                 string baseName = ingredient.IngredientBase.Name;
                 if (basesByName.TryGetValue(baseName, out IngredientBase? existingBase))
-                {
                     ingredient.IngredientBase = existingBase;
-                }
                 else
-                {
                     basesByName[baseName] = ingredient.IngredientBase;
-                }
 
                 string measurementName = ingredient.Measurement.Name;
                 if (measurementsByName.TryGetValue(measurementName, out Measurement? existingMeasurement))
-                {
                     ingredient.Measurement = existingMeasurement;
-                }
                 else
-                {
                     measurementsByName[measurementName] = ingredient.Measurement;
-                }
             }
 
-            context.Recipes.Add(recipe);
-            seededCount++;
+            if (existingByName.TryGetValue(seedRecipe.Name, out Recipe? existing))
+            {
+                // Update scalar fields so changes in seed data (e.g. ImageUrl) propagate.
+                existing.Calories = seedRecipe.Calories;
+                existing.Protein = seedRecipe.Protein;
+                existing.Carbs = seedRecipe.Carbs;
+                existing.Fat = seedRecipe.Fat;
+                existing.Directions = seedRecipe.Directions;
+                existing.ImageUrl = seedRecipe.ImageUrl;
+
+                // Sync tags (many-to-many join rows).
+                existing.Tags.Clear();
+                existing.Tags.AddRange(resolvedTags);
+
+                // Replace ingredients: delete old rows, insert new resolved ones.
+                context.Set<Ingredient>().RemoveRange(existing.Ingredients.ToList());
+                existing.Ingredients.Clear();
+                existing.Ingredients.AddRange(seedRecipe.Ingredients);
+
+                updated++;
+            }
+            else
+            {
+                seedRecipe.Tags.Clear();
+                seedRecipe.Tags.AddRange(resolvedTags);
+                context.Recipes.Add(seedRecipe);
+                added++;
+            }
         }
 
-        if (seededCount > 0)
+        if (added > 0 || updated > 0)
             await context.SaveChangesAsync();
-        logger.LogInformation("Seeded {Count} recipes.", seededCount);
+        logger.LogInformation("Recipes seeded: {Added} added, {Updated} updated.", added, updated);
     }
 
     private static async Task AddRoleAsync(RoleManager<IdentityRole> roleManager, string roleName)

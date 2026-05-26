@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using MealPlanner.DAL.Abstract;
 using MealPlanner.Helpers;
 using MealPlanner.Models;
 using MealPlanner.Models.DTO;
@@ -13,12 +14,21 @@ public class EdamamService:IExternalRecipeService
     JsonSerializerOptions _responseDeserializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     string _appId;
     string _apiKey;
+    private readonly IIngredientBaseRepository _ingredientBaseRepo;
+    private readonly IMeasurementRepository _measurementRepo;
 
-    public EdamamService(HttpClient httpClient, string appId, string apiKey)
+    public EdamamService(
+        HttpClient httpClient,
+        string appId,
+        string apiKey,
+        IIngredientBaseRepository ingredientBaseRepo,
+        IMeasurementRepository measurementRepo)
     {
         _httpClient = httpClient;
         _appId = appId;
         _apiKey = apiKey;
+        _ingredientBaseRepo = ingredientBaseRepo;
+        _measurementRepo = measurementRepo;
     }
     
     public async Task<IEnumerable<RecipeDTO>> SearchExternalRecipesByName(string recipeName)
@@ -49,8 +59,8 @@ public class EdamamService:IExternalRecipeService
     public async Task<Recipe?> GetExternalRecipeByURI(string uri)
     {
         uri = WebUtility.UrlEncode(uri);
-        string endpoint = $"recipes/v2/by-uri?uri={uri}&app_id={_appId}&app_key={_apiKey}&field=uri&field=label&field=image&field=url&field=ingredients&field=totalNutrients&field=dietLabels&field=healthLabels&field=cuisineType&field=mealType&field=dishType";
-        
+        string endpoint = $"recipes/v2/by-uri?uri={uri}&app_id={_appId}&app_key={_apiKey}";
+
         HttpResponseMessage response = await _httpClient.GetAsync(endpoint);
         if (!response.IsSuccessStatusCode)
         {
@@ -58,13 +68,17 @@ public class EdamamService:IExternalRecipeService
             throw new Exception($"Error accessing Edamam Recipe Search API: {response.StatusCode}");
         }
         string responseBody = await response.Content.ReadAsStringAsync();
-        
+
         EdamamRecipeSearchResponse? edamamResponse = JsonSerializer.Deserialize<EdamamRecipeSearchResponse>
         (
             responseBody,
             _responseDeserializerOptions
         );
-        return edamamResponse?.Hits.Select(
+        if (edamamResponse is null) return null;
+
+        var (bases, measurements) = ResolveIngredientLookups(edamamResponse.Hits);
+
+        return edamamResponse.Hits.Select(
             e => new Recipe
             {
                 Name = e.Recipe.Label,
@@ -76,7 +90,7 @@ public class EdamamService:IExternalRecipeService
                 Carbs = (int?) e.Recipe.TotalNutrients?["CHOCDF"]?.Quantity ?? 0,
                 Fat = (int?) e.Recipe.TotalNutrients?["FAT"]?.Quantity ?? 0,
                 ImageUrl = e.Recipe.Image,
-                Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? []),
+                Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? [], bases, measurements),
                 ExternalCategorization = CollectCategorization(e.Recipe)
             }).FirstOrDefault();
     }
@@ -145,7 +159,11 @@ public class EdamamService:IExternalRecipeService
         EdamamRecipeSearchResponse? edamamResponse = JsonSerializer.Deserialize<EdamamRecipeSearchResponse>(
             responseBody, _responseDeserializerOptions);
 
-        return edamamResponse?.Hits.Select(e => new Recipe
+        if (edamamResponse is null) return [];
+
+        var (bases, measurements) = ResolveIngredientLookups(edamamResponse.Hits);
+
+        return edamamResponse.Hits.Select(e => new Recipe
         {
             Name = e.Recipe.Label,
             ExternalUri = e.Recipe.Uri,
@@ -156,9 +174,9 @@ public class EdamamService:IExternalRecipeService
             Fat      = (int?) e.Recipe.TotalNutrients?["FAT"]?.Quantity ?? 0,
             ImageUrl = e.Recipe.Image,
             Tags = [],
-            Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? []),
+            Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? [], bases, measurements),
             ExternalCategorization = CollectCategorization(e.Recipe)
-        }) ?? [];
+        });
     }
 
     public async Task<IEnumerable<Recipe>> GetExternalRecipesByURIs(IEnumerable<string> uris)
@@ -181,32 +199,61 @@ public class EdamamService:IExternalRecipeService
             EdamamRecipeSearchResponse? edamamResponse = JsonSerializer.Deserialize<EdamamRecipeSearchResponse>(
                 responseBody, _responseDeserializerOptions);
 
-            if (edamamResponse is not null)
-                results.AddRange(edamamResponse.Hits.Select(e => new Recipe
-                {
-                    Name = e.Recipe.Label,
-                    ExternalUri = e.Recipe.Uri,
-                    Directions = "",
-                    Calories = (int?) e.Recipe.TotalNutrients?["ENERC_KCAL"]?.Quantity ?? 0,
-                    Protein  = (int?) e.Recipe.TotalNutrients?["PROCNT"]?.Quantity ?? 0,
-                    Carbs    = (int?) e.Recipe.TotalNutrients?["CHOCDF"]?.Quantity ?? 0,
-                    Fat      = (int?) e.Recipe.TotalNutrients?["FAT"]?.Quantity ?? 0,
-                    ImageUrl = e.Recipe.Image,
-                    Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? []),
-                    ExternalCategorization = CollectCategorization(e.Recipe)
-                }));
+            if (edamamResponse is null) continue;
+
+            var (bases, measurements) = ResolveIngredientLookups(edamamResponse.Hits);
+
+            results.AddRange(edamamResponse.Hits.Select(e => new Recipe
+            {
+                Name = e.Recipe.Label,
+                ExternalUri = e.Recipe.Uri,
+                Directions = "",
+                Calories = (int?) e.Recipe.TotalNutrients?["ENERC_KCAL"]?.Quantity ?? 0,
+                Protein  = (int?) e.Recipe.TotalNutrients?["PROCNT"]?.Quantity ?? 0,
+                Carbs    = (int?) e.Recipe.TotalNutrients?["CHOCDF"]?.Quantity ?? 0,
+                Fat      = (int?) e.Recipe.TotalNutrients?["FAT"]?.Quantity ?? 0,
+                ImageUrl = e.Recipe.Image,
+                Ingredients = ParseIngredientsFromResponse(e.Recipe.Ingredients ?? [], bases, measurements),
+                ExternalCategorization = CollectCategorization(e.Recipe)
+            }));
         }
         return results;
     }
 
-    private List<Ingredient> ParseIngredientsFromResponse(IList<EdamamIngredient> edamamIngredients)
+    // Edamam returns a null/empty Measure for unitless items like "2 eggs";
+    // mirror the rest of the codebase by mapping those to the canonical "Count"
+    // measurement.
+    private static string MeasurementNameOrDefault(string? raw)
+        => string.IsNullOrWhiteSpace(raw) ? "Count" : raw.Trim();
+
+    // Edamam ingredients arrive without local Ids. Resolving them one-by-one
+    // would be N+1 queries per page load; instead, gather every IngredientBase
+    // and Measurement name in the whole response and FindOrCreate them in two
+    // batched queries (one per lookup table). Downstream code (shopping list
+    // sync, pantry, etc.) then sees tracked entities with real-or-about-to-be-
+    // real Ids — identical to ingredients sourced from local recipes.
+    private (IDictionary<string, IngredientBase> Bases, IDictionary<string, Measurement> Measurements)
+        ResolveIngredientLookups(IEnumerable<EdamamHit> hits)
+    {
+        var allIngredients = hits.SelectMany(h => h.Recipe.Ingredients ?? []).ToList();
+        var bases = _ingredientBaseRepo.GetOrCreateByNames(
+            allIngredients.Select(i => i.Food));
+        var measurements = _measurementRepo.GetOrCreateByNames(
+            allIngredients.Select(i => MeasurementNameOrDefault(i.Measure)));
+        return (bases, measurements);
+    }
+
+    private static List<Ingredient> ParseIngredientsFromResponse(
+        IList<EdamamIngredient> edamamIngredients,
+        IDictionary<string, IngredientBase> bases,
+        IDictionary<string, Measurement> measurements)
     {
         return edamamIngredients.Select(i => new Ingredient
         {
             DisplayName = i.Food,
             Amount = i.Quantity,
-            IngredientBase = new IngredientBase { Name = IngredientNameNormalizer.NormalizeKey(i.Food) },
-            Measurement = new Measurement { Name = i.Measure }
+            IngredientBase = bases[IngredientNameNormalizer.NormalizeKey(i.Food)],
+            Measurement = measurements[MeasurementNameOrDefault(i.Measure)]
         }).ToList();
     }
 }
