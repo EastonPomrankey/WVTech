@@ -64,7 +64,7 @@ public class ShoppingListService : IShoppingListService
             ))
             .Select(g =>
             {
-                var best = g.OrderByDescending(e =>
+                var best = g.OrderBy(e =>
                     conversionMap.TryGetValue(e.MeasurementId, out var mc) ? mc.Factor : 1f).First();
                 float amountInBase = g.Sum(e =>
                     conversionMap.TryGetValue(e.MeasurementId, out var mc2) ? e.Amount * mc2.Factor : e.Amount);
@@ -102,12 +102,13 @@ public class ShoppingListService : IShoppingListService
             {
                 var manual = compatible.First();
                 float existingInBase = ToBase(manual.Amount, manual.MeasurementId, conversionMap);
-                float totalInBase = existingInBase + entry.AmountInBase;
+                float pureUserInBase = MathF.Max(0f, existingInBase - manual.RecipeContributionAmountInBase);
+                float totalInBase = pureUserInBase + entry.AmountInBase;
                 float newAmount = conversionMap.TryGetValue(manual.MeasurementId, out var manConv)
                     ? totalInBase / manConv.Factor
                     : totalInBase;
                 _shoppingListRepository.UpdateAmountAndRecipeContribution(
-                    userId, manual.Id, newAmount, manual.RecipeContributionAmountInBase + entry.AmountInBase);
+                    userId, manual.Id, newAmount, entry.AmountInBase);
                 updatedManualIds.Add(manual.Id);
             }
             else
