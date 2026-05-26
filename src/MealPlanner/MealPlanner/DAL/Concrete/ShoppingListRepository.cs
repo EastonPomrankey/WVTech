@@ -17,8 +17,8 @@ public class ShoppingListRepository : IShoppingListRepository
     {
         var existing = _context.ShoppingListItems
             .FirstOrDefault(i => i.UserId == item.UserId
-                              && i.IngredientBaseId == item.IngredientBase.Id
-                              && i.MeasurementId == item.Measurement.Id
+                              && i.IngredientBaseId == item.IngredientBaseId
+                              && i.MeasurementId == item.MeasurementId
                               && i.IsAutoAdded == item.IsAutoAdded);
 
         if (existing != null)
@@ -39,8 +39,8 @@ public class ShoppingListRepository : IShoppingListRepository
         {
             var existing = _context.ShoppingListItems
                 .FirstOrDefault(i => i.UserId == item.UserId
-                                  && i.IngredientBaseId == item.IngredientBase.Id
-                                  && i.MeasurementId == item.Measurement.Id
+                                  && i.IngredientBaseId == item.IngredientBaseId
+                                  && i.MeasurementId == item.MeasurementId
                                   && i.IsAutoAdded == item.IsAutoAdded);
             if (existing != null)
                 existing.Amount += item.Amount;

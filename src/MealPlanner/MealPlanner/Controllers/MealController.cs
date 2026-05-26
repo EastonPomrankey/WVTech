@@ -54,7 +54,7 @@ public class MealController : Controller
                 : DateTime.Today;
 
         var meals = await _mealRepo.GetDistinctUserMealsAsync(user);
-
+        await meals.LoadExternalRecipesAsync(_externalRecipeService);
         var vm = new SelectMealViewModel
         {
             SelectedDate = selectedDate,
@@ -112,6 +112,7 @@ public class MealController : Controller
                 : DateTime.Today;
 
         var meals = await _mealRepo.GetUserMealsByDateAsync(user, selectedDate);
+        await meals.LoadExternalRecipesAsync(_externalRecipeService);
 
         var vm = new PlannerHomeViewModel
         {
@@ -274,6 +275,7 @@ public class MealController : Controller
         _mealRepo.CreateOrUpdate(meal);
         _context.SaveChanges();
 
+        await meal.Recipes.LoadExternalRecipesAsync(_externalRecipeService);
         return Json(new
         {
             mealId = meal.Id,
@@ -310,7 +312,9 @@ public class MealController : Controller
         meal.Recipes.Add(replacement);
         _mealRepo.CreateOrUpdate(meal);
         _context.SaveChanges();
-
+        
+        
+        await meal.Recipes.LoadExternalRecipesAsync(_externalRecipeService);
         return Json(new
         {
             newRecipe = new { replacement.Id, replacement.Name, replacement.Calories },
@@ -339,6 +343,8 @@ public class MealController : Controller
         _mealRepo.CreateOrUpdate(meal);
         _context.SaveChanges();
 
+        
+        await meal.Recipes.LoadExternalRecipesAsync(_externalRecipeService);
         return Json(new { restoredRecipe = toAdd != null ? new { toAdd.Id, toAdd.Name, toAdd.Calories } : null });
     }
 
@@ -389,6 +395,7 @@ public class MealController : Controller
         }
 
         await _mealRepo.LoadRecipesAsync(meal);
+        await meal.Recipes.LoadExternalRecipesAsync(_externalRecipeService);
 
         return View(meal);
     }
@@ -409,7 +416,8 @@ public class MealController : Controller
         }
 
         await _mealRepo.LoadRecipesAsync(meal);
-
+        await meal.Recipes.LoadExternalRecipesAsync(_externalRecipeService);
+        
         ViewBag.ReturnUrl = returnUrl;
 
         var viewModel = new EditMealViewModel
@@ -451,7 +459,6 @@ public class MealController : Controller
             return NotFound();
 
         await _mealRepo.LoadRecipesAsync(meal);
-
         
         DateTime selectedDate = new DateTime(
             DateTime.Today.Year, 
@@ -616,7 +623,7 @@ public class MealController : Controller
             _context.MealCompletions.Add(new MealCompletion { MealId = meal.Id, CompletionDate = completionDate });
 
             if (removePantry == true && _pantryService != null)
-                _pantryService.AutoRemovePantryItems(user.Id, meal.Id, completionDate, [meal]);
+                await _pantryService.AutoRemovePantryItems(user.Id, meal.Id, completionDate, [meal]);
         }
         else if (isCompleted != true && existing != null)
         {

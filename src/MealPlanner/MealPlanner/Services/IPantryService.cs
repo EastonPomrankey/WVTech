@@ -11,7 +11,7 @@ public interface IPantryService
     void UpdatePantryItemAmount(int ingredientId, string userId, float newAmount);
 
     HashSet<int> GetMealPantryMatchIds(string userId, List<Meal> meals);
-    void AutoRemovePantryItems(string userId, int mealId, DateTime completionDate, List<Meal> meals);
+    Task AutoRemovePantryItems(string userId, int mealId, DateTime completionDate, List<Meal> meals);
     bool HasAutoRemovedIngredients(int mealId, DateTime completionDate);
     void RestorePantryItems(string userId, int mealId, DateTime completionDate);
 }

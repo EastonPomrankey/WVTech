@@ -26,14 +26,26 @@ public class RecipeRepositoryTests
 
         if (context.Database.EnsureCreated())
         {
-            // Normally we'd add more test data here, but we will use the seed data definined in MealPlannerDBContext as well
+            // Named recipes required by GetRecipesByName tests (previously came from HasData)
+            context.AddRange(
+                new Recipe { Id = 1, Name = "Oatmeal Cookies",               Directions = "" },
+                new Recipe { Id = 2, Name = "Spaghetti All'assassina",        Directions = "" },
+                new Recipe { Id = 3, Name = "Spaghetti and Meatballs",        Directions = "" },
+                new Recipe { Id = 4, Name = "Vegan Spaghetti with Mushrooms", Directions = "" },
+                new Recipe { Id = 5, Name = "Baked Spaghetti Casserole",      Directions = "" },
+                new Recipe { Id = 6, Name = "Mac 'n Cheese Casserole",        Directions = "" },
+                new Recipe { Id = 7, Name = "Homemade Mac 'n Cheese",         Directions = "" },
+                new Recipe { Id = 8, Name = "Mushroom Steak Salad",           Directions = "" },
+                new Recipe { Id = 9, Name = "Ceasar Salad",                   Directions = "" }
+            );
+
             Ingredient ingredient = new Ingredient
             {
                 IngredientBase = new IngredientBase { Name="test" },
                 Measurement = new Measurement { Name="Test", Abbreviation="Test" },
                 Amount = 0
             };
-            context.Add( new Recipe
+            context.Add(new Recipe
             {
                 Id = 10,
                 Name = "Test",

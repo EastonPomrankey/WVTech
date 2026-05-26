@@ -113,8 +113,9 @@ public class WVT59Steps
     [Given("no other recipes have been upvoted")]
     public void GivenNoOtherRecipesHaveBeenUpvoted()
     {
-        var upvoted = _context.Set<UserRecipe>().Where(ur => ur.RecipeId != -1);
-        _context.RemoveRange(upvoted);
+        var oatmealCookies = _context.Set<Recipe>().First(r => r.Name == "Oatmeal Cookies");
+        var others = _context.Set<UserRecipe>().Where(ur => ur.RecipeId != oatmealCookies.Id);
+        _context.RemoveRange(others);
         _context.SaveChanges();
     }
 

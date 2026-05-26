@@ -33,6 +33,7 @@ public static class RecipeSeedData
             Name = "Veggie Scramble",
             Calories = 280, Protein = 22, Carbs = 6, Fat = 18,
             Directions = "Heat olive oil in a non-stick skillet over medium heat. Add spinach and sauté until wilted, about 1 minute. Whisk the eggs with salt and pepper, pour into the pan, and gently stir until just set, about 2 minutes. Sprinkle cheese over the top, remove from heat, and let the residual warmth melt the cheese before serving.",
+            ImageUrl = "https://images.pexels.com/photos/34141541/pexels-photo-34141541.jpeg",
             Ingredients =
             {
                 I(3, "Count", "Egg"),
@@ -51,6 +52,7 @@ public static class RecipeSeedData
             Name = "Greek Yogurt Berry Parfait",
             Calories = 320, Protein = 18, Carbs = 42, Fat = 8,
             Directions = "In a tall glass, layer half of the Greek yogurt, then half of the berries, then half of the granola. Repeat with the remaining ingredients. Drizzle honey over the top and serve immediately.",
+            ImageUrl = "https://images.pexels.com/photos/414262/pexels-photo-414262.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Plain Greek Yogurt"),
@@ -67,6 +69,7 @@ public static class RecipeSeedData
             Name = "Avocado Toast with Tomato",
             Calories = 340, Protein = 9, Carbs = 38, Fat = 18,
             Directions = "Toast the bread to golden brown. Mash the avocado with lemon juice and salt in a small bowl. Spread the avocado mixture evenly on each slice of toast. Top with thin slices of tomato and sprinkle red pepper flakes over the top.",
+            ImageUrl = "https://images.pexels.com/photos/8591455/pexels-photo-8591455.jpeg",
             Ingredients =
             {
                 I(2, "Count", "Whole Grain Bread"),
@@ -85,6 +88,7 @@ public static class RecipeSeedData
             Name = "Protein Oatmeal Bowl",
             Calories = 420, Protein = 32, Carbs = 52, Fat = 10,
             Directions = "Combine oats and milk in a small pot and bring to a simmer over medium heat, stirring occasionally, until thickened, about 5 minutes. Remove from heat, let cool slightly, then stir in the whey protein. Top with sliced banana, chia seeds, and cinnamon.",
+            ImageUrl = "https://images.pexels.com/photos/7167853/pexels-photo-7167853.jpeg",
             Ingredients =
             {
                 I(0.5f, "cup", "Rolled Oats"),
@@ -103,6 +107,7 @@ public static class RecipeSeedData
             Name = "Grilled Chicken Caesar Wrap",
             Calories = 520, Protein = 38, Carbs = 45, Fat = 22,
             Directions = "Season the chicken breast with salt and pepper, then grill over medium-high heat for 6 minutes per side or until cooked through. Let rest for 5 minutes and slice. Toss romaine with caesar dressing, parmesan, and croutons in a bowl. Spread the salad mixture on the tortilla, top with the sliced chicken, and roll tightly. Slice in half to serve.",
+            ImageUrl = "https://images.pexels.com/photos/9624298/pexels-photo-9624298.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -123,6 +128,7 @@ public static class RecipeSeedData
             Name = "Quinoa Buddha Bowl",
             Calories = 480, Protein = 18, Carbs = 62, Fat = 18,
             Directions = "Preheat the oven to 400°F. Cube the sweet potato, toss with olive oil and a pinch of salt, and roast on a sheet pan for 25 minutes. Meanwhile, massage kale with a pinch of salt until tender. Assemble the bowl with quinoa as the base, then arrange chickpeas, roasted sweet potato, massaged kale, and avocado on top. Whisk tahini with lemon juice and a splash of water, and drizzle over the bowl before serving.",
+            ImageUrl = "https://images.pexels.com/photos/8286778/pexels-photo-8286778.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Cooked Quinoa"),
@@ -144,6 +150,7 @@ public static class RecipeSeedData
             Name = "Turkey and Hummus Wrap",
             Calories = 460, Protein = 32, Carbs = 48, Fat = 16,
             Directions = "Lay the tortilla flat and spread hummus evenly across it. Layer turkey slices, spinach, thin cucumber slices, and thin strips of red bell pepper. Fold in the sides and roll tightly. Slice diagonally to serve.",
+            ImageUrl = "https://images.pexels.com/photos/3872385/pexels-photo-3872385.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Sliced Turkey Breast"),
@@ -162,6 +169,7 @@ public static class RecipeSeedData
             Name = "Tomato Basil Soup",
             Calories = 220, Protein = 6, Carbs = 32, Fat = 8,
             Directions = "Heat olive oil in a large pot over medium heat. Add diced onion and sauté until translucent, about 5 minutes. Stir in minced garlic and cook for 30 seconds. Add crushed tomatoes and vegetable broth, and bring to a simmer. Cover and cook for 15 minutes. Remove from heat and blend with an immersion blender until smooth. Stir in torn basil leaves, salt, and pepper, and serve.",
+            ImageUrl = "https://images.pexels.com/photos/17302314/pexels-photo-17302314.jpeg",
             Ingredients =
             {
                 I(28, "ounce", "Canned Crushed Tomatoes"),
@@ -182,6 +190,7 @@ public static class RecipeSeedData
             Name = "Grilled Salmon with Asparagus",
             Calories = 440, Protein = 40, Carbs = 10, Fat = 26,
             Directions = "Preheat a grill or grill pan to medium-high heat. Brush salmon and asparagus with olive oil and season with salt, pepper, and minced garlic. Grill salmon skin-side down for 5 minutes, flip, and cook an additional 3 minutes. Grill asparagus alongside, turning once, until tender and slightly charred, about 6 minutes total. Squeeze lemon over both before serving.",
+            ImageUrl = "https://images.pexels.com/photos/7731673/pexels-photo-7731673.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Salmon Fillet"),
@@ -201,6 +210,7 @@ public static class RecipeSeedData
             Name = "Vegetable Tofu Stir Fry",
             Calories = 380, Protein = 24, Carbs = 36, Fat = 16,
             Directions = "Press tofu between paper towels for 10 minutes to remove excess moisture, then cube. Heat sesame oil in a large wok over high heat. Add tofu and sear until golden on all sides, about 5 minutes; remove and set aside. In the same wok, stir fry minced garlic, ginger, broccoli, bell pepper, and snap peas for 4 minutes. Return tofu to the pan, add soy sauce, toss to coat, and cook 1 more minute before serving.",
+            ImageUrl = "https://images.pexels.com/photos/5848469/pexels-photo-5848469.jpeg",
             Ingredients =
             {
                 I(8, "ounce", "Firm Tofu"),
@@ -221,6 +231,7 @@ public static class RecipeSeedData
             Name = "Chicken Fajita Bowl",
             Calories = 560, Protein = 42, Carbs = 48, Fat = 20,
             Directions = "Slice the chicken, bell peppers, and onion into strips. Toss the chicken with olive oil, chili powder, cumin, and salt. Heat a large skillet over medium-high heat and cook the chicken for 6 minutes until browned and cooked through. Add the peppers and onion, and sauté until tender-crisp, about 4 more minutes. Build the bowl with brown rice on the bottom, the fajita mixture over the top, and garnish with black beans, sliced avocado, and salsa.",
+            ImageUrl = "https://images.pexels.com/photos/9213869/pexels-photo-9213869.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -245,6 +256,7 @@ public static class RecipeSeedData
             Name = "Baked Lemon Garlic Tilapia",
             Calories = 260, Protein = 34, Carbs = 4, Fat = 12,
             Directions = "Preheat the oven to 400°F. Place tilapia on a parchment-lined baking sheet. Whisk olive oil, juice from half the lemon, and minced garlic, then spoon over the fish. Season with salt and pepper. Top with thin lemon slices from the remaining half. Bake for 12 minutes, or until the fish flakes easily with a fork. Garnish with chopped parsley before serving.",
+            ImageUrl = "https://images.pexels.com/photos/30635699/pexels-photo-30635699.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Tilapia Fillet"),
@@ -264,6 +276,7 @@ public static class RecipeSeedData
             Name = "Hearty Beef Chili",
             Calories = 540, Protein = 36, Carbs = 42, Fat = 22,
             Directions = "Brown ground beef in a large pot over medium-high heat, breaking it apart as it cooks, about 7 minutes. Drain excess fat. Add diced onion and minced garlic, and cook until softened, about 4 minutes. Stir in chili powder, cumin, paprika, and salt and toast for 30 seconds. Add diced tomatoes, kidney beans, and black beans. Reduce heat to low, cover partially, and simmer for 25 minutes, stirring occasionally. Serve hot.",
+            ImageUrl = "https://images.pexels.com/photos/15881322/pexels-photo-15881322.jpeg",
             Ingredients =
             {
                 I(1, "pound", "Ground Beef"),
@@ -286,6 +299,7 @@ public static class RecipeSeedData
             Name = "Apple with Almond Butter",
             Calories = 250, Protein = 7, Carbs = 28, Fat = 12,
             Directions = "Core the apple and slice into wedges. Sprinkle the apple slices with cinnamon. Serve alongside almond butter for dipping.",
+            ImageUrl = "https://images.pexels.com/photos/33489594/pexels-photo-33489594.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Apple"),
@@ -301,6 +315,7 @@ public static class RecipeSeedData
             Name = "Dark Chocolate Avocado Mousse",
             Calories = 320, Protein = 6, Carbs = 32, Fat = 22,
             Directions = "Scoop the avocado into a food processor with cocoa powder, maple syrup, oat milk, vanilla extract, and salt. Blend until completely smooth, scraping down the sides as needed, about 2 minutes. Divide between two small bowls, cover, and chill in the refrigerator for at least 30 minutes before serving.",
+            ImageUrl = "https://images.pexels.com/photos/6261272/pexels-photo-6261272.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Avocado"),
@@ -319,6 +334,7 @@ public static class RecipeSeedData
             Name = "Blueberry Pancakes",
             Calories = 420, Protein = 14, Carbs = 68, Fat = 12,
             Directions = "Whisk flour, sugar, baking powder, and salt. In a separate bowl, beat egg with milk and melted butter, then stir into dry ingredients until just combined and fold in blueberries. Pour 0.25-cup portions onto a hot greased skillet over medium heat, cook until bubbles form on top, flip, and cook one more minute. Serve with maple syrup.",
+            ImageUrl = "https://images.pexels.com/photos/6630129/pexels-photo-6630129.jpeg",
             Ingredients =
             {
                 I(1, "cup", "All-Purpose Flour"),
@@ -340,6 +356,7 @@ public static class RecipeSeedData
             Name = "Western Omelet",
             Calories = 460, Protein = 32, Carbs = 6, Fat = 32,
             Directions = "Melt butter in a non-stick skillet over medium heat and sauté diced bell pepper and onion until softened, about 3 minutes. Add diced ham and heat 1 minute. Whisk eggs with salt and pepper, pour into skillet, and let set 1 minute, then sprinkle cheese over one half. Fold, slide onto a plate, and serve.",
+            ImageUrl = "https://images.pexels.com/photos/12310569/pexels-photo-12310569.jpeg",
             Ingredients =
             {
                 I(3, "Count", "Egg"),
@@ -360,6 +377,7 @@ public static class RecipeSeedData
             Name = "Overnight Oats",
             Calories = 380, Protein = 20, Carbs = 58, Fat = 8,
             Directions = "In a mason jar, combine oats, milk, honey, chia seeds, and whey protein and stir thoroughly. Cover and refrigerate at least 6 hours or overnight. Top with mixed berries before serving.",
+            ImageUrl = "https://images.pexels.com/photos/27850091/pexels-photo-27850091.jpeg",
             Ingredients =
             {
                 I(0.5f, "cup", "Rolled Oats"),
@@ -378,6 +396,7 @@ public static class RecipeSeedData
             Name = "Breakfast Burrito",
             Calories = 540, Protein = 28, Carbs = 52, Fat = 24,
             Directions = "Melt butter in a skillet over medium heat, whisk eggs with salt, and scramble until just set. Warm the tortilla in a dry skillet for 20 seconds. Pile eggs, cheese, black beans, salsa, and sliced avocado down the center, fold in the sides, and roll tightly.",
+            ImageUrl = "https://images.pexels.com/photos/9258717/pexels-photo-9258717.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Flour Tortilla"),
@@ -399,6 +418,7 @@ public static class RecipeSeedData
             Name = "Spinach Feta Egg Muffins",
             Calories = 180, Protein = 16, Carbs = 4, Fat = 12,
             Directions = "Preheat oven to 375°F and grease a 12-cup muffin tin with olive oil. Divide chopped spinach and feta among the cups. Whisk eggs with milk, salt, and pepper and pour over the fillings, filling each cup three-quarters full. Bake 20 minutes until set. Serves 6 at 2 muffins each.",
+            ImageUrl = "https://images.pexels.com/photos/34516532/pexels-photo-34516532.jpeg",
             Ingredients =
             {
                 I(6, "Count", "Egg"),
@@ -418,6 +438,7 @@ public static class RecipeSeedData
             Name = "Chia Seed Pudding",
             Calories = 260, Protein = 8, Carbs = 32, Fat = 12,
             Directions = "Whisk chia seeds, oat milk, maple syrup, and vanilla in a jar, cover, and refrigerate 4 hours or overnight, stirring once after 30 minutes to prevent clumping. Top with mixed berries before serving.",
+            ImageUrl = "https://images.pexels.com/photos/4397285/pexels-photo-4397285.jpeg",
             Ingredients =
             {
                 I(0.33f, "cup", "Chia Seeds"),
@@ -435,6 +456,7 @@ public static class RecipeSeedData
             Name = "Steel Cut Oatmeal with Cinnamon Apples",
             Calories = 340, Protein = 8, Carbs = 62, Fat = 6,
             Directions = "Bring water to a boil, add oats and salt, and simmer uncovered 25 minutes until thick. In a skillet, cook diced apple with cinnamon and 1 tablespoon water until softened, about 5 minutes. Top oats with cinnamon apples and drizzle with maple syrup.",
+            ImageUrl = "https://images.pexels.com/photos/6072374/pexels-photo-6072374.jpeg",
             Ingredients =
             {
                 I(0.5f, "cup", "Steel Cut Oats"),
@@ -453,6 +475,7 @@ public static class RecipeSeedData
             Name = "Classic Chicken Caesar Salad",
             Calories = 460, Protein = 40, Carbs = 12, Fat = 28,
             Directions = "Season chicken with salt and pepper, then sear in olive oil over medium-high heat 6 minutes per side until cooked through. Rest 5 minutes and slice. Toss chopped romaine with caesar dressing and parmesan, top with chicken, and serve.",
+            ImageUrl = "https://images.pexels.com/photos/28618645/pexels-photo-28618645.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -472,6 +495,7 @@ public static class RecipeSeedData
             Name = "Turkey Club Sandwich",
             Calories = 580, Protein = 38, Carbs = 52, Fat = 22,
             Directions = "Toast bread and cook turkey bacon in a skillet until crisp, about 4 minutes per side. Spread mayo on one side of each slice; on the bottom layer turkey, Swiss, lettuce, and tomato. Add the middle slice mayo-up, then turkey bacon and more lettuce, and top with the final slice mayo-down. Secure with toothpicks and slice into quarters.",
+            ImageUrl = "https://images.pexels.com/photos/35158781/pexels-photo-35158781.jpeg",
             Ingredients =
             {
                 I(3, "Count", "Whole Wheat Bread"),
@@ -491,6 +515,7 @@ public static class RecipeSeedData
             Name = "Chickpea Smash Sandwich",
             Calories = 420, Protein = 16, Carbs = 58, Fat = 14,
             Directions = "Mash chickpeas with hummus, lemon juice, salt, and pepper until mostly smooth with some texture remaining. Spread mixture on one slice of bread, top with lettuce and tomato, close with the second slice, and slice in half.",
+            ImageUrl = "https://images.pexels.com/photos/30107969/pexels-photo-30107969.jpeg",
             Ingredients =
             {
                 I(2, "Count", "Whole Wheat Bread"),
@@ -511,6 +536,7 @@ public static class RecipeSeedData
             Name = "Nicoise Salad",
             Calories = 480, Protein = 32, Carbs = 28, Fat = 26,
             Directions = "Boil eggs 9 minutes and shock in ice water; peel and halve. Boil diced potato 10 minutes until tender. Blanch green beans 2 minutes and shock in ice water. Whisk olive oil, lemon juice, dijon, and salt for dressing. Arrange greens on a plate with tuna, eggs, green beans, cherry tomatoes, olives, and potato, and drizzle with dressing.",
+            ImageUrl = "https://images.pexels.com/photos/6544221/pexels-photo-6544221.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Canned Tuna"),
@@ -534,6 +560,7 @@ public static class RecipeSeedData
             Name = "Red Lentil Soup",
             Calories = 320, Protein = 18, Carbs = 48, Fat = 6,
             Directions = "Sauté diced onion and carrots in olive oil 5 minutes, add minced garlic, cumin, and turmeric and toast 30 seconds. Add rinsed lentils and broth, bring to a boil, then cover and simmer 20 minutes. Stir in salt and lemon juice; partially blend for a creamier texture if desired.",
+            ImageUrl = "https://images.pexels.com/photos/29850843/pexels-photo-29850843.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Red Lentils"),
@@ -556,6 +583,7 @@ public static class RecipeSeedData
             Name = "Thai Peanut Noodles",
             Calories = 520, Protein = 18, Carbs = 68, Fat = 22,
             Directions = "Cook rice noodles per package, drain, and rinse in cold water. Whisk peanut butter, soy sauce, rice vinegar, maple syrup, and 2 tablespoons warm water until smooth. Toss noodles with sauce, shredded carrots, and cabbage, drizzle sesame oil, and garnish with chopped peanuts and cilantro.",
+            ImageUrl = "https://images.pexels.com/photos/27640564/pexels-photo-27640564.jpeg",
             Ingredients =
             {
                 I(4, "ounce", "Rice Noodles"),
@@ -578,6 +606,7 @@ public static class RecipeSeedData
             Name = "Buffalo Chicken Wrap",
             Calories = 540, Protein = 36, Carbs = 48, Fat = 24,
             Directions = "Season chicken with salt, sear in olive oil over medium-high heat 6 minutes per side, rest, slice, and toss with buffalo sauce. Spread ranch on the tortilla, layer lettuce, carrots, buffalo chicken, and blue cheese, roll tightly, and slice diagonally.",
+            ImageUrl = "https://images.pexels.com/photos/37324429/pexels-photo-37324429.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Chicken Breast"),
@@ -599,6 +628,7 @@ public static class RecipeSeedData
             Name = "Cobb Salad",
             Calories = 580, Protein = 42, Carbs = 14, Fat = 38,
             Directions = "Cook turkey bacon in a skillet until crisp, about 4 minutes per side, and crumble. Arrange greens on a plate and top with rows of sliced chicken, turkey bacon, halved egg, diced avocado, blue cheese, and halved cherry tomatoes. Drizzle with ranch before serving.",
+            ImageUrl = "https://images.pexels.com/photos/30700803/pexels-photo-30700803.jpeg",
             Ingredients =
             {
                 I(3, "cup", "Mixed Greens"),
@@ -619,6 +649,7 @@ public static class RecipeSeedData
             Name = "Greek Salad",
             Calories = 280, Protein = 9, Carbs = 16, Fat = 22,
             Directions = "Combine romaine, half-moon cucumber, halved cherry tomatoes, thinly sliced red onion, olives, and feta in a large bowl. Whisk olive oil, lemon juice, oregano, and salt and toss gently to coat.",
+            ImageUrl = "https://images.pexels.com/photos/34293330/pexels-photo-34293330.jpeg",
             Ingredients =
             {
                 I(2, "cup", "Romaine Lettuce"),
@@ -641,6 +672,7 @@ public static class RecipeSeedData
             Name = "Teriyaki Chicken Bowl",
             Calories = 580, Protein = 38, Carbs = 68, Fat = 14,
             Directions = "Cube chicken and toss with 2 tablespoons teriyaki. Sear in sesame oil over medium-high heat 7 minutes. Remove, then stir fry broccoli and sliced pepper 4 minutes. Return chicken with remaining teriyaki and toss. Serve over rice, topped with sesame seeds and sliced green onion.",
+            ImageUrl = "https://images.pexels.com/photos/5836780/pexels-photo-5836780.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -661,6 +693,7 @@ public static class RecipeSeedData
             Name = "Herb Roasted Chicken Thighs with Root Vegetables",
             Calories = 620, Protein = 42, Carbs = 42, Fat = 30,
             Directions = "Preheat oven to 425°F. Toss 1-inch chunks of carrots, parsnips, and onion with 2 tablespoons oil, salt, and pepper on a sheet pan. Rub chicken thighs with minced garlic, chopped rosemary, thyme, salt, pepper, and remaining oil, and place skin-side up on the vegetables. Roast 40 minutes until chicken reaches 165°F.",
+            ImageUrl = "https://images.pexels.com/photos/4589138/pexels-photo-4589138.jpeg",
             Ingredients =
             {
                 I(2, "Count", "Chicken Thigh"),
@@ -683,6 +716,7 @@ public static class RecipeSeedData
             Name = "Mongolian Beef Stir Fry",
             Calories = 560, Protein = 38, Carbs = 52, Fat = 22,
             Directions = "Slice flank steak against the grain, toss with cornstarch, and sear in a hot wok with vegetable oil 1 minute per side; remove. Stir fry minced garlic and ginger 30 seconds, add soy sauce, brown sugar, and 0.25 cup water, and simmer until thickened. Return steak with broccoli and sliced green onions, toss 1 minute, and serve over rice.",
+            ImageUrl = "https://images.pexels.com/photos/26341193/pexels-photo-26341193.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Flank Steak"),
@@ -705,6 +739,7 @@ public static class RecipeSeedData
             Name = "Garlic Shrimp Scampi",
             Calories = 540, Protein = 32, Carbs = 52, Fat = 20,
             Directions = "Cook linguine per package and reserve 0.25 cup pasta water. Heat olive oil and butter in a skillet over medium heat, add minced garlic and red pepper flakes and cook 30 seconds, then add peeled shrimp and sear 2 minutes per side. Stir in lemon juice, salt, and reserved pasta water, toss with linguine, and finish with parsley.",
+            ImageUrl = "https://images.pexels.com/photos/8697543/pexels-photo-8697543.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Shrimp"),
@@ -726,6 +761,7 @@ public static class RecipeSeedData
             Name = "Basil Pesto Pasta",
             Calories = 580, Protein = 16, Carbs = 68, Fat = 28,
             Directions = "Cook penne per package, drain, and reserve 0.25 cup pasta water. Toss hot pasta with pesto and olive oil, loosening with pasta water as needed. Stir in halved cherry tomatoes and finish with parmesan, salt, and pepper.",
+            ImageUrl = "https://images.pexels.com/photos/14333979/pexels-photo-14333979.jpeg",
             Ingredients =
             {
                 I(4, "ounce", "Penne Pasta"),
@@ -745,6 +781,7 @@ public static class RecipeSeedData
             Name = "Chicken Coconut Curry",
             Calories = 620, Protein = 36, Carbs = 42, Fat = 32,
             Directions = "Sauté sliced onion in vegetable oil 3 minutes, add minced garlic, ginger, and curry paste and stir 30 seconds. Add cubed chicken and cook 5 minutes, then pour in coconut milk and fish sauce and simmer 8 minutes. Add sliced bell pepper for 3 minutes and wilt in spinach. Serve over jasmine rice.",
+            ImageUrl = "https://images.pexels.com/photos/27352275/pexels-photo-27352275.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -769,6 +806,7 @@ public static class RecipeSeedData
             Name = "Vegetable Lasagna",
             Calories = 580, Protein = 28, Carbs = 62, Fat = 24,
             Directions = "Preheat oven to 375°F and cook noodles per package. Sauté minced garlic and sliced zucchini in olive oil 5 minutes, then wilt in spinach. Mix ricotta with egg, salt, and pepper. In a 9x13 dish, layer marinara, noodles, ricotta, vegetables, and mozzarella; repeat twice and top with parmesan. Bake covered 30 minutes and uncovered 10 minutes; rest 10 minutes and garnish with basil.",
+            ImageUrl = "https://images.pexels.com/photos/4079522/pexels-photo-4079522.jpeg",
             Ingredients =
             {
                 I(8, "Count", "Lasagna Noodle"),
@@ -794,6 +832,7 @@ public static class RecipeSeedData
             Name = "Chicken Tikka Masala",
             Calories = 680, Protein = 42, Carbs = 52, Fat = 30,
             Directions = "Marinate cubed chicken in yogurt with 1 tablespoon garam masala, cumin, and salt for 30 minutes. Sear chicken in vegetable oil 6 minutes and remove. Sauté diced onion 5 minutes, add minced garlic, ginger, remaining garam masala, and paprika for 1 minute, then crushed tomatoes and simmer 10 minutes. Stir in cream, return chicken, simmer 5 more minutes, and serve over rice.",
+            ImageUrl = "https://images.pexels.com/photos/11188417/pexels-photo-11188417.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),
@@ -819,6 +858,7 @@ public static class RecipeSeedData
             Name = "Bison Burger",
             Calories = 620, Protein = 38, Carbs = 42, Fat = 32,
             Directions = "Form bison into a 6-ounce patty 0.75 inch thick and season with salt and pepper. Cook in a hot cast iron skillet 4 minutes per side, topping with cheese in the final minute. Toast the bun in the skillet, spread mayo on the bottom, and layer lettuce, tomato, patty, and red onion before closing.",
+            ImageUrl = "https://images.pexels.com/photos/4253700/pexels-photo-4253700.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Ground Bison"),
@@ -840,6 +880,7 @@ public static class RecipeSeedData
             Name = "Vegetarian Three Bean Chili",
             Calories = 420, Protein = 22, Carbs = 72, Fat = 6,
             Directions = "Sauté diced onion and bell pepper in olive oil 5 minutes, add minced garlic, chili powder, cumin, and paprika and toast 30 seconds. Stir in tomatoes, rinsed and drained beans, broth, and salt. Simmer 25 minutes, stirring occasionally.",
+            ImageUrl = "https://images.pexels.com/photos/119813/pexels-photo-119813.jpeg",
             Ingredients =
             {
                 I(15, "ounce", "Canned Black Beans"),
@@ -865,6 +906,7 @@ public static class RecipeSeedData
             Name = "Baked Cod with Roasted Vegetables",
             Calories = 340, Protein = 36, Carbs = 18, Fat = 14,
             Directions = "Preheat oven to 400°F. Toss cherry tomatoes, sliced zucchini, and wedged onion with 1 tablespoon oil, salt, and pepper on a sheet pan and roast 10 minutes. Add cod, drizzle with remaining oil, minced garlic, oregano, and juice from half a lemon, and top with slices from the other half. Bake 12 more minutes until the fish flakes.",
+            ImageUrl = "https://images.pexels.com/photos/12918197/pexels-photo-12918197.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Cod Fillet"),
@@ -887,6 +929,7 @@ public static class RecipeSeedData
             Name = "Steak and Garlic Potatoes",
             Calories = 720, Protein = 44, Carbs = 42, Fat = 42,
             Directions = "Roast halved baby potatoes tossed with olive oil, 0.25 teaspoon salt, and pepper at 425°F for 25 minutes, flipping halfway. Sear seasoned steak in a hot cast iron skillet 4 minutes per side, adding butter, smashed garlic, and rosemary in the final minute and basting. Rest 5 minutes and slice against the grain; serve with potatoes.",
+            ImageUrl = "https://images.pexels.com/photos/25003390/pexels-photo-25003390.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Ribeye Steak"),
@@ -907,6 +950,7 @@ public static class RecipeSeedData
             Name = "Salmon Sushi Bowl",
             Calories = 560, Protein = 32, Carbs = 52, Fat = 22,
             Directions = "Stir rice vinegar into warm rice and let cool slightly. Cube sushi-grade salmon and toss with soy sauce and sesame oil. Place rice in a bowl and arrange salmon, sliced cucumber and avocado, and shredded carrots on top. Garnish with sesame seeds, sliced green onion, and strips of nori.",
+            ImageUrl = "https://images.pexels.com/photos/15913485/pexels-photo-15913485.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Sushi-Grade Salmon"),
@@ -930,6 +974,7 @@ public static class RecipeSeedData
             Name = "Pad Thai with Chicken",
             Calories = 620, Protein = 32, Carbs = 72, Fat = 22,
             Directions = "Soak rice noodles in warm water 20 minutes and drain. Whisk fish sauce, brown sugar, lime juice, and tamarind. Stir fry minced garlic in vegetable oil 15 seconds, add sliced chicken and cook 3 minutes, then scramble eggs in the open space. Add drained noodles and sauce, toss 2 minutes, and stir in bean sprouts and sliced green onions. Finish with chopped peanuts.",
+            ImageUrl = "https://images.pexels.com/photos/35063430/pexels-photo-35063430.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Chicken Breast"),
@@ -955,6 +1000,7 @@ public static class RecipeSeedData
             Name = "Eggplant Parmesan",
             Calories = 580, Protein = 26, Carbs = 58, Fat = 28,
             Directions = "Slice eggplant into 0.5-inch rounds, salt, and drain on paper towels 15 minutes. Dredge in flour, beaten egg, then breadcrumbs mixed with parmesan. Fry in olive oil 2 minutes per side. Layer marinara, eggplant, mozzarella, and basil in a baking dish; repeat once. Bake at 400°F for 20 minutes until bubbly.",
+            ImageUrl = "https://images.pexels.com/photos/1707917/pexels-photo-1707917.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Eggplant"),
@@ -978,6 +1024,7 @@ public static class RecipeSeedData
             Name = "Hummus and Vegetable Platter",
             Calories = 220, Protein = 8, Carbs = 28, Fat = 10,
             Directions = "Cut carrot and cucumber into sticks, slice bell pepper into strips, and arrange all vegetables around a small bowl of hummus on a platter. Serve immediately or chill up to 4 hours.",
+            ImageUrl = "https://images.pexels.com/photos/18234416/pexels-photo-18234416.jpeg",
             Ingredients =
             {
                 I(0.5f, "cup", "Hummus"),
@@ -997,6 +1044,7 @@ public static class RecipeSeedData
             Name = "Homemade Trail Mix",
             Calories = 280, Protein = 8, Carbs = 24, Fat = 18,
             Directions = "Combine almonds, cashews, raisins, dried cranberries, chocolate chips, and pumpkin seeds in a jar and shake to mix. Store at room temperature up to 2 weeks. Portion 0.5 cup per serving.",
+            ImageUrl = "https://images.pexels.com/photos/14122549/pexels-photo-14122549.jpeg",
             Ingredients =
             {
                 I(0.25f, "cup", "Almonds"),
@@ -1015,6 +1063,7 @@ public static class RecipeSeedData
             Name = "Strawberry Banana Protein Smoothie",
             Calories = 320, Protein = 28, Carbs = 48, Fat = 4,
             Directions = "Combine banana, frozen strawberries, milk, whey protein, honey, and ice in a blender and blend on high 45 seconds, scraping down once. Pour into a tall glass and serve immediately.",
+            ImageUrl = "https://images.pexels.com/photos/103566/pexels-photo-103566.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Banana"),
@@ -1034,6 +1083,7 @@ public static class RecipeSeedData
             Name = "Deviled Eggs",
             Calories = 180, Protein = 12, Carbs = 2, Fat = 14,
             Directions = "Cover eggs with cold water in a pot, bring to a boil, cover, turn off heat, and let sit 10 minutes; shock in ice water and peel. Halve, scoop yolks, and mash with mayo, dijon, vinegar, and salt. Pipe back into whites and garnish with paprika and sliced green onion.",
+            ImageUrl = "https://images.pexels.com/photos/17290375/pexels-photo-17290375.jpeg",
             Ingredients =
             {
                 I(6, "Count", "Egg"),
@@ -1053,6 +1103,7 @@ public static class RecipeSeedData
             Name = "Cheese and Crackers Plate",
             Calories = 340, Protein = 14, Carbs = 28, Fat = 20,
             Directions = "Slice cheddar and brie into bite-size pieces and arrange on a plate with crackers and grapes. Pour honey into a small ramekin for dipping with brie.",
+            ImageUrl = "https://images.pexels.com/photos/4193752/pexels-photo-4193752.jpeg",
             Ingredients =
             {
                 I(2, "ounce", "Cheddar Cheese"),
@@ -1070,6 +1121,7 @@ public static class RecipeSeedData
             Name = "Rice Cakes with Peanut Butter and Banana",
             Calories = 260, Protein = 8, Carbs = 36, Fat = 10,
             Directions = "Spread peanut butter over each rice cake and layer with thin banana rounds. Drizzle with honey and dust with cinnamon.",
+            ImageUrl = "https://images.pexels.com/photos/16797806/pexels-photo-16797806.jpeg",
             Ingredients =
             {
                 I(2, "Count", "Rice Cake"),
@@ -1087,6 +1139,7 @@ public static class RecipeSeedData
             Name = "Tomato Basil Bruschetta",
             Calories = 240, Protein = 6, Carbs = 34, Fat = 10,
             Directions = "Combine diced tomatoes, chiffonaded basil, minced garlic, 1 tablespoon oil, vinegar, and salt and marinate 10 minutes. Brush baguette slices with remaining oil and broil 2 minutes per side until golden. Spoon tomato mixture generously onto each toast.",
+            ImageUrl = "https://images.pexels.com/photos/7432995/pexels-photo-7432995.jpeg",
             Ingredients =
             {
                 I(4, "Count", "Baguette"),
@@ -1107,6 +1160,7 @@ public static class RecipeSeedData
             Name = "Spinach Artichoke Dip",
             Calories = 320, Protein = 12, Carbs = 14, Fat = 26,
             Directions = "Preheat oven to 375°F. Thaw spinach and squeeze dry; chop drained artichokes. Mix cream cheese, sour cream, mozzarella, parmesan, minced garlic, salt, and pepper until smooth, then fold in spinach and artichokes. Transfer to an oven-safe dish and bake 25 minutes until bubbly and golden on top.",
+            ImageUrl = "https://images.pexels.com/photos/28241679/pexels-photo-28241679.jpeg",
             Ingredients =
             {
                 I(10, "ounce", "Frozen Spinach"),
@@ -1129,6 +1183,7 @@ public static class RecipeSeedData
             Name = "Stuffed Mushrooms",
             Calories = 180, Protein = 10, Carbs = 8, Fat = 12,
             Directions = "Remove and chop mushroom stems; arrange caps on a baking sheet. Sauté chopped stems with minced garlic in 1 tablespoon oil for 3 minutes, cool slightly, and mix with cream cheese, parmesan, parsley, salt, and pepper. Spoon into caps, drizzle with remaining oil, and bake at 400°F for 20 minutes until golden.",
+            ImageUrl = "https://images.pexels.com/photos/35212372/pexels-photo-35212372.jpeg",
             Ingredients =
             {
                 I(12, "Count", "Cremini Mushroom"),
@@ -1150,6 +1205,7 @@ public static class RecipeSeedData
             Name = "Caprese Skewers",
             Calories = 180, Protein = 10, Carbs = 6, Fat = 14,
             Directions = "Thread one cherry tomato, folded basil leaf, and mozzarella pearl onto each of 12 skewers and arrange on a platter. Drizzle with olive oil and balsamic glaze and sprinkle with salt before serving.",
+            ImageUrl = "https://images.pexels.com/photos/33691783/pexels-photo-33691783.jpeg",
             Ingredients =
             {
                 I(12, "Count", "Cherry Tomato"),
@@ -1168,6 +1224,7 @@ public static class RecipeSeedData
             Name = "Shrimp Cocktail",
             Calories = 140, Protein = 22, Carbs = 10, Fat = 2,
             Directions = "Boil peeled, deveined shrimp (tail on) in salted water 2 minutes and shock in ice water. Whisk ketchup, horseradish, lemon juice, and worcestershire for cocktail sauce. Drain shrimp and arrange on a platter with lemon wedges and sauce.",
+            ImageUrl = "https://images.pexels.com/photos/28525132/pexels-photo-28525132.jpeg",
             Ingredients =
             {
                 I(12, "Count", "Shrimp"),
@@ -1187,6 +1244,7 @@ public static class RecipeSeedData
             Name = "Summer Fruit Salad",
             Calories = 160, Protein = 2, Carbs = 40, Fat = 0,
             Directions = "Hull and quarter strawberries, cube pineapple, slice kiwi, and segment orange. Combine all fruit in a bowl, whisk lime juice and honey, and drizzle over the fruit. Toss gently and garnish with torn mint.",
+            ImageUrl = "https://images.pexels.com/photos/14864305/pexels-photo-14864305.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Strawberries"),
@@ -1208,6 +1266,7 @@ public static class RecipeSeedData
             Name = "Classic Chocolate Chip Cookies",
             Calories = 180, Protein = 2, Carbs = 24, Fat = 10,
             Directions = "Cream softened butter with both sugars until fluffy, then beat in eggs one at a time and vanilla. Whisk flour, baking soda, and salt and stir into wet ingredients until just combined; fold in chocolate chips. Drop rounded tablespoons onto a parchment-lined sheet 2 inches apart and bake at 375°F for 10 minutes. Cool on the pan 5 minutes before transferring to a wire rack.",
+            ImageUrl = "https://images.pexels.com/photos/8081574/pexels-photo-8081574.jpeg",
             Ingredients =
             {
                 I(2.25f, "cup", "All-Purpose Flour"),
@@ -1230,6 +1289,7 @@ public static class RecipeSeedData
             Name = "Mixed Berry Crumble",
             Calories = 340, Protein = 4, Carbs = 58, Fat = 12,
             Directions = "Preheat oven to 375°F. Toss berries with lemon juice and 2 tablespoons brown sugar and spread in a greased 8x8 dish. Combine oats, flour, remaining sugar, cinnamon, and salt, cut in cold butter until crumbly, and sprinkle over the berries. Bake 35 minutes until golden and bubbly; cool 15 minutes.",
+            ImageUrl = "https://images.pexels.com/photos/19816016/pexels-photo-19816016.jpeg",
             Ingredients =
             {
                 I(4, "cup", "Mixed Berries"),
@@ -1251,6 +1311,7 @@ public static class RecipeSeedData
             Name = "Coconut Rice Pudding",
             Calories = 320, Protein = 4, Carbs = 58, Fat = 10,
             Directions = "Combine rice, coconut milk, water, sugar, and salt in a pot, bring to a boil, then cover and simmer on low 25 minutes, stirring occasionally. Stir in vanilla and serve warm dusted with cinnamon.",
+            ImageUrl = "https://images.pexels.com/photos/33088380/pexels-photo-33088380.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Jasmine Rice"),
@@ -1270,6 +1331,7 @@ public static class RecipeSeedData
             Name = "Ahi Tuna Poke Bowl",
             Calories = 540, Protein = 38, Carbs = 58, Fat = 16,
             Directions = "Cube ahi and marinate in soy sauce, sesame oil, rice vinegar, and sriracha 10 minutes. Layer rice in a bowl and arrange tuna, diced cucumber, sliced avocado, edamame, and shredded carrots on top. Finish with sliced green onion and sesame seeds.",
+            ImageUrl = "https://images.pexels.com/photos/20571440/pexels-photo-20571440.jpeg",
             Ingredients =
             {
                 I(5, "ounce", "Sushi-Grade Ahi Tuna"),
@@ -1294,6 +1356,7 @@ public static class RecipeSeedData
             Name = "Tropical Smoothie Bowl",
             Calories = 380, Protein = 6, Carbs = 82, Fat = 6,
             Directions = "Blend frozen mango, banana, pineapple, and oat milk until thick, adding more oat milk only if needed. Pour into a shallow bowl and arrange granola, sliced strawberries, shredded coconut, and chia seeds in rows across the top. Serve immediately.",
+            ImageUrl = "https://images.pexels.com/photos/1346346/pexels-photo-1346346.jpeg",
             Ingredients =
             {
                 I(1, "cup", "Mango"),
@@ -1314,6 +1377,7 @@ public static class RecipeSeedData
             Name = "Loaded Sweet Potato",
             Calories = 440, Protein = 18, Carbs = 84, Fat = 6,
             Directions = "Pierce sweet potato several times and bake at 400°F for 50 minutes until tender. Slit lengthwise and fluff the flesh. Warm black beans and corn with chili powder 3 minutes. Top the sweet potato with beans, corn, salsa, avocado, and cilantro, and drizzle with lime juice.",
+            ImageUrl = "https://images.pexels.com/photos/9219079/pexels-photo-9219079.jpeg",
             Ingredients =
             {
                 I(1, "Count", "Sweet Potato"),
@@ -1335,6 +1399,7 @@ public static class RecipeSeedData
             Name = "Mediterranean Baked Chicken",
             Calories = 520, Protein = 44, Carbs = 14, Fat = 30,
             Directions = "Preheat oven to 400°F. Whisk olive oil, juice from half a lemon, minced garlic, oregano, salt, and pepper and pour over chicken in a baking dish. Scatter halved cherry tomatoes and olives around and top with slices from the other lemon half. Bake 25 minutes, scatter feta over the top, and bake 3 more minutes.",
+            ImageUrl = "https://images.pexels.com/photos/36939708/pexels-photo-36939708.jpeg",
             Ingredients =
             {
                 I(6, "ounce", "Chicken Breast"),

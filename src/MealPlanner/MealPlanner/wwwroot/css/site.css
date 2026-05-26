@@ -865,22 +865,50 @@ a.buttonRed {
     white-space: nowrap;
 }
 
-/* Export History Modal */
-.export-modal-overlay {
+/* Site-wide modal — restored after cd53f5e renamed the overlay class to
+   .export-modal-overlay (which has no matching markup anywhere). Visuals
+   mirror .sl-modal-* on the shopping pages so the chrome is consistent
+   across confirm-style modals site-wide. */
+.app-modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1050;
-    background: rgba(0, 0, 0, 0.6);
     align-items: center;
     justify-content: center;
 }
 
 .app-modal-panel {
-    width: 90%;
-    max-width: 420px;
-    padding: 2rem;
-    text-align: center;
+    background-color: var(--layer1-bg);
+    border: 0.5px solid rgba(127, 127, 127, 0.3);
+    border-radius: 12px;
+    width: 480px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.app-modal-header {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid rgba(127, 127, 127, 0.3);
+    flex-shrink: 0;
+}
+
+.app-modal-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.app-modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
 }
 
 /* Export History Modal */

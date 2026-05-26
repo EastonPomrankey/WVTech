@@ -1,4 +1,5 @@
 using MealPlanner.DAL.Abstract;
+using MealPlanner.Helpers;
 using MealPlanner.Models;
 
 namespace MealPlanner.Services;
@@ -9,17 +10,20 @@ public class PantryService : IPantryService
     private readonly IMealAutoRemovedIngredientRepository _autoRemovedRepo;
     private readonly IIngredientBaseRepository _ingredientBaseRepo;
     private readonly IRepository<Measurement> _measurementRepo;
+    private readonly IExternalRecipeService? _externalRecipeService;
 
     public PantryService(
         IUserRepository userRepo,
         IMealAutoRemovedIngredientRepository autoRemovedRepo,
         IIngredientBaseRepository ingredientBaseRepo,
-        IRepository<Measurement> measurementRepo)
+        IRepository<Measurement> measurementRepo,
+        IExternalRecipeService? externalRecipeService = null)
     {
         _userRepo = userRepo;
         _autoRemovedRepo = autoRemovedRepo;
         _ingredientBaseRepo = ingredientBaseRepo;
         _measurementRepo = measurementRepo;
+        _externalRecipeService = externalRecipeService;
     }
 
     public List<Ingredient> GetPantryItems(string userId)
@@ -81,8 +85,9 @@ public class PantryService : IPantryService
         return result;
     }
 
-    public void AutoRemovePantryItems(string userId, int mealId, DateTime completionDate, List<Meal> meals)
+    public async Task AutoRemovePantryItems(string userId, int mealId, DateTime completionDate, List<Meal> meals)
     {
+        await meals.LoadExternalRecipesAsync(_externalRecipeService);
         var meal = meals.FirstOrDefault(m => m.Id == mealId);
         if (meal == null) return;
 
@@ -100,11 +105,26 @@ public class PantryService : IPantryService
         var matching = _userRepo.GetMatchingPantryItems(userId, recipeInfoByBaseId.Keys.ToHashSet());
         if (matching.Count == 0) return;
 
+        // A user can have multiple pantry rows sharing one IngredientBase
+        // (e.g. flour in cups AND flour in lbs), but MealAutoRemovedIngredient
+        // has a composite PK on {MealId, CompletionDate, IngredientBaseId} —
+        // only one removal record per ingredient base per completion. Sort so
+        // same-unit pantry rows are considered first within each IB group,
+        // then process each IngredientBase.Id at most once.
+        matching = matching
+            .OrderBy(item =>
+                recipeInfoByBaseId.TryGetValue(item.IngredientBase.Id, out var info)
+                    && item.Measurement.Id == info.MeasurementId ? 0 : 1)
+            .ToList();
+        var processedBaseIds = new HashSet<int>();
+
         var records = new List<MealAutoRemovedIngredient>();
 
         foreach (var item in matching)
         {
             if (!recipeInfoByBaseId.TryGetValue(item.IngredientBase.Id, out var recipeInfo))
+                continue;
+            if (!processedBaseIds.Add(item.IngredientBase.Id))
                 continue;
 
             bool sameUnit = item.Measurement.Id == recipeInfo.MeasurementId;
