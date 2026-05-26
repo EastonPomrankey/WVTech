@@ -343,12 +343,20 @@ public class WVT183Steps
         _wait.Until(d => ((IJavaScriptExecutor)d)
             .ExecuteScript("return document.readyState").ToString() == "complete");
 
-        var matchingItems = _driver.FindElements(By.CssSelector(".item-display"))
-            .Where(i => i.Text.Contains(ingredientName, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        int count = 0;
+        _wait.Until(d =>
+        {
+            try
+            {
+                count = d.FindElements(By.CssSelector(".item-display"))
+                    .Count(i => i.Text.Contains(ingredientName, StringComparison.OrdinalIgnoreCase));
+                return true;
+            }
+            catch (StaleElementReferenceException) { return false; }
+        });
 
-        Assert.That(matchingItems.Count, Is.EqualTo(expectedCount),
-            $"Expected '{ingredientName}' to appear {expectedCount} time(s) on shopping list, found {matchingItems.Count}");
+        Assert.That(count, Is.EqualTo(expectedCount),
+            $"Expected '{ingredientName}' to appear {expectedCount} time(s) on shopping list, found {count}");
     }
 
     [When("{string} navigates away from the shopping list")]
