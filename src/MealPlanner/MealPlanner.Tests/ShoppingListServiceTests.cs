@@ -77,7 +77,7 @@ public class ShoppingListServiceTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today.AddDays(1));
 
         _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
-            items.Any(i => i.IngredientBase.Name == "flour" && i.Amount == 2f)
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 2f)
         )), Times.Once);
     }
 
@@ -99,7 +99,7 @@ public class ShoppingListServiceTests
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today.AddDays(1));
 
         _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
-            items.Any(i => i.IngredientBase.Name == "sugar" && i.Amount == 3f)
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 3f)
         )), Times.Once);
     }
 
@@ -114,8 +114,8 @@ public class ShoppingListServiceTests
 
         await _service.SyncFromDateRangeAsync("user-1", new User { Id = "user-1" }, DateTime.Today, DateTime.Today);
 
-        _repo.Verify(r => r.Add(It.Is<ShoppingListItem>(i =>
-            i.IngredientBaseId == 1 && i.Amount == 2f
+        _repo.Verify(r => r.AddAutoAddedBatch(It.Is<IEnumerable<ShoppingListItem>>(items =>
+            items.Any(i => i.IngredientBaseId == 1 && i.Amount == 2f)
         )), Times.Once);
     }
 
