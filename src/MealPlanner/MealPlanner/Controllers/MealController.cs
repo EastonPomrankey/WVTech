@@ -21,6 +21,7 @@ public class MealController : Controller
     private readonly IMealRecommendationService? _recommendationService;
     private readonly IPantryService? _pantryService;
     private readonly IExternalRecipeService? _externalRecipeService;
+    private readonly IShoppingListService _shoppingListService;
 
     public MealController(
         IRegistrationService registrationService,
@@ -28,6 +29,7 @@ public class MealController : Controller
         IMealRepository mealRepo,
         MealPlannerDBContext context,
         ITagRepository tagRepo,
+        IShoppingListService shoppingListService,
         IMealRecommendationService? mealRecommendationService = null,
         IPantryService? pantryService = null,
         IExternalRecipeService? externalRecipeService = null)
@@ -37,6 +39,7 @@ public class MealController : Controller
         _mealRepo = mealRepo;
         _context = context;
         _tagRepo = tagRepo;
+        _shoppingListService = shoppingListService;
         _recommendationService = mealRecommendationService;
         _pantryService = pantryService;
         _externalRecipeService = externalRecipeService;
@@ -75,6 +78,8 @@ public class MealController : Controller
         if (source == null || source.UserId != user.Id) return NotFound();
 
         await _mealRepo.LoadRecipesAsync(source);
+        foreach (var recipe in source.Recipes)
+            await _context.Entry(recipe).Collection(r => r.Ingredients).LoadAsync();
 
         DateTime selectedDate =
             DateTime.TryParse(date, out var parsed)
@@ -93,6 +98,12 @@ public class MealController : Controller
 
         _mealRepo.CreateOrUpdate(clone);
         _context.SaveChanges();
+
+        var ingredientBaseIds = source.Recipes
+            .SelectMany(r => r.Ingredients)
+            .Select(i => i.IngredientBaseId)
+            .Distinct();
+        _shoppingListService.UnDismissIngredientBases(user.Id, ingredientBaseIds);
 
         Response.Cookies.Delete("ShoppingListSynced");
         return RedirectToAction("Index", "Home", new { date = selectedDate.ToString("yyyy-MM-dd") });
@@ -174,7 +185,7 @@ public class MealController : Controller
 
         foreach (int id in model.RecipeIds)
         {
-            var recipe = _recipeRepo.Read(id);
+            var recipe = await _recipeRepo.ReadRecipeWithIngredientsAsync(id);
             if (recipe != null)
             {
                 newMeal.Recipes.Add(recipe);
@@ -183,6 +194,12 @@ public class MealController : Controller
 
         _mealRepo.CreateOrUpdate(newMeal);
         _context.SaveChanges();
+
+        var ingredientBaseIds = newMeal.Recipes
+            .SelectMany(r => r.Ingredients)
+            .Select(i => i.IngredientBaseId)
+            .Distinct();
+        _shoppingListService.UnDismissIngredientBases(user.Id, ingredientBaseIds);
 
         Response.Cookies.Delete("ShoppingListSynced");
         return RedirectToAction("Index", "Home");

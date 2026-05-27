@@ -261,6 +261,12 @@ public class ShoppingListService : IShoppingListService
         _shoppingListRepository.AddBatch(toAdd);
     }
 
+    public void UnDismissIngredientBases(string userId, IEnumerable<int> ingredientBaseIds)
+    {
+        foreach (var id in ingredientBaseIds)
+            _shoppingListRepository.UnDismiss(userId, id);
+    }
+
     public void RemoveItem(int itemId, string userId)
     {
         if (itemId <= 0)

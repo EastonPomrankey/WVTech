@@ -18,4 +18,5 @@ public interface IShoppingListService
     Task<List<Measurement>> GetMeasurementsAsync();
     IEnumerable<ShoppingListItem> FindConflictingItems(string userId, string ingredientName, string addedMeasurementName);
     IEnumerable<(ShoppingListItem AutoAdded, ShoppingListItem Manual)> FindAutoAddedConflicts(string userId, IReadOnlyList<ShoppingListItem>? cachedItems = null);
+    void UnDismissIngredientBases(string userId, IEnumerable<int> ingredientBaseIds);
 }

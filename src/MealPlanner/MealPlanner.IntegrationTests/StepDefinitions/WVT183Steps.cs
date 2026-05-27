@@ -383,4 +383,67 @@ public class WVT183Steps
         ctx.Meals.RemoveRange(meals);
         ctx.SaveChanges();
     }
+
+    [Given("{string} has dismissed {string} from her shopping list")]
+    public void GivenUserHasDismissedIngredient(string userName, string ingredientName)
+    {
+        using var ctx = BDDSetup.CreateContext();
+        var user = ctx.Set<User>().FirstOrDefault(u => u.Email == $"{userName}{_emailBase}");
+        Assert.That(user, Is.Not.Null, $"User '{userName}' not found");
+
+        var ingredientBase = ctx.Set<IngredientBase>().FirstOrDefault(b => b.Name == ingredientName)
+            ?? ctx.Set<IngredientBase>().Add(new IngredientBase { Name = ingredientName }).Entity;
+        ctx.SaveChanges();
+
+        var alreadyDismissed = ctx.DismissedShoppingItems
+            .Any(d => d.UserId == user!.Id && d.IngredientBaseId == ingredientBase.Id);
+        if (!alreadyDismissed)
+        {
+            ctx.DismissedShoppingItems.Add(new DismissedShoppingItem
+            {
+                UserId = user!.Id,
+                IngredientBaseId = ingredientBase.Id
+            });
+            ctx.SaveChanges();
+        }
+    }
+
+    [When("{string} re-adds {string} with amount {string} and measurement {string} via batch import")]
+    public void WhenUserReAddsViaBatchImport(string userName, string ingredientName, string amount, string measurement)
+    {
+        var body = $"[{{\"name\":\"{ingredientName}\",\"amount\":{amount},\"measurement\":\"{measurement}\"}}]";
+        ((IJavaScriptExecutor)_driver).ExecuteScript(
+            @"fetch('/Shopping/AddItemsBatch', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: arguments[0]
+            });",
+            body);
+        System.Threading.Thread.Sleep(600);
+    }
+
+    [When("{string} creates a new meal with ingredient {string} via the meal controller")]
+    public void WhenUserCreatesNewMealWithIngredientViaController(string userName, string ingredientName)
+    {
+        int recipeId;
+        using (var ctx = BDDSetup.CreateContext())
+        {
+            recipeId = ctx.Recipes
+                .Where(r => r.Ingredients.Any(i => i.IngredientBase.Name == ingredientName))
+                .Select(r => r.Id)
+                .FirstOrDefault();
+            Assert.That(recipeId, Is.Not.Zero, $"No recipe with ingredient '{ingredientName}' found");
+        }
+
+        var today = DateTime.Today;
+        var formBody = $"Title=testmeal&SelectedMonth={today.Month}&SelectedDay={today.Day}&RecipeIds={recipeId}";
+        ((IJavaScriptExecutor)_driver).ExecuteScript(
+            @"fetch('/Meal/NewMeal', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: arguments[0]
+            });",
+            formBody);
+        System.Threading.Thread.Sleep(800);
+    }
 }
