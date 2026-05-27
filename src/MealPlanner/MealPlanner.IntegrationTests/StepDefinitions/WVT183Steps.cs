@@ -412,14 +412,15 @@ public class WVT183Steps
     public void WhenUserReAddsViaBatchImport(string userName, string ingredientName, string amount, string measurement)
     {
         var body = $"[{{\"name\":\"{ingredientName}\",\"amount\":{amount},\"measurement\":\"{measurement}\"}}]";
-        ((IJavaScriptExecutor)_driver).ExecuteScript(
-            @"fetch('/Shopping/AddItemsBatch', {
+        _driver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(10);
+        ((IJavaScriptExecutor)_driver).ExecuteAsyncScript(
+            @"var done = arguments[arguments.length - 1];
+            fetch('/Shopping/AddItemsBatch', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: arguments[0]
-            });",
+            }).then(function() { done(); }).catch(function() { done(); });",
             body);
-        System.Threading.Thread.Sleep(600);
     }
 
     [When("{string} creates a new meal with ingredient {string} via the meal controller")]
