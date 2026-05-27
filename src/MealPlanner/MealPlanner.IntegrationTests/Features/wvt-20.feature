@@ -83,3 +83,19 @@ Feature: WVT-20
     And 'Alice' sets the quantity display of 'wvt20fraction' to '1/4'
     And 'Alice' clicks increment on 'wvt20fraction'
     Then 'wvt20fraction' displays with amount '2/4' on the shopping list
+
+  Scenario: Decimal format persists as decimal after incrementing and reloading
+    Given 'Alice' has 'wvt20decpersist' with display '1.5' and measurement 'Count' on the shopping list
+    When 'Alice' navigates to the shopping list
+    And 'Alice' clicks increment on 'wvt20decpersist'
+    And 'Alice' navigates away from the shopping list
+    And 'Alice' navigates to the shopping list
+    Then 'wvt20decpersist' displays as a decimal on the shopping list
+
+  Scenario: Fraction format persists as fraction after incrementing and reloading
+    Given 'Alice' has 'wvt20fracpersist' with display '1/4' and measurement 'Count' on the shopping list
+    When 'Alice' navigates to the shopping list
+    And 'Alice' clicks increment on 'wvt20fracpersist'
+    And 'Alice' navigates away from the shopping list
+    And 'Alice' navigates to the shopping list
+    Then 'wvt20fracpersist' displays as a fraction on the shopping list

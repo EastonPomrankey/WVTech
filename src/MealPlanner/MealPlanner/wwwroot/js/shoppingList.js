@@ -225,6 +225,9 @@ document.addEventListener("focusout", async function (e) {
       body: JSON.stringify({ itemId, newAmount: numberStr })
     }).catch(() => {});
     input.dataset.originalAmount = numberStr;
+    const fracMatch = numberStr.trim().match(/(\d+)\/(\d+)$/);
+    input.dataset.denominator = fracMatch ? fracMatch[2] : '1';
+    input.dataset.isDecimal = numberStr.includes('.') ? 'true' : 'false';
   }
 
   if (measurementChanged && measurement) {

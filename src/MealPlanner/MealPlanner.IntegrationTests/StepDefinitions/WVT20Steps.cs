@@ -495,8 +495,86 @@ public class WVT20Steps
         var btn = span!.FindElement(By.XPath("../preceding-sibling::div[1]//button[contains(@class,'qty-increment')]"));
         ((IJavaScriptExecutor)_driver).ExecuteScript("arguments[0].click()", btn);
 
-        _wait.Until(d => ((IJavaScriptExecutor)d)
-            .ExecuteScript("return document.readyState").ToString() == "complete");
+        // Wait for the async fetch to persist the new amount before any navigation
+        System.Threading.Thread.Sleep(600);
+    }
+
+    [Given("{string} has {string} with display {string} and measurement {string} on the shopping list")]
+    public void GivenUserHasItemWithDisplayOnShoppingList(string userName, string ingredientName, string displayAmount, string measurement)
+    {
+        float? parsed = FractionParser.ParseAmount(displayAmount);
+        Assert.That(parsed, Is.Not.Null, $"Could not parse display amount '{displayAmount}'");
+
+        using var ctx = BDDSetup.CreateContext();
+        var user = ctx.Set<User>().FirstOrDefault(u => u.Email == $"{userName}@fakeemail.com");
+        Assert.That(user, Is.Not.Null, $"User '{userName}' not found");
+
+        var normalizedName = IngredientNameNormalizer.NormalizeKey(ingredientName);
+        var ingredientBase = ctx.Set<IngredientBase>().FirstOrDefault(b => b.Name == normalizedName)
+            ?? ctx.Set<IngredientBase>().Add(new IngredientBase { Name = normalizedName }).Entity;
+
+        var measurementEntity = ctx.Set<Measurement>().FirstOrDefault(m => m.Name == measurement)
+            ?? ctx.Set<Measurement>().Add(new Measurement { Name = measurement, Abbreviation = measurement }).Entity;
+
+        ctx.SaveChanges();
+
+        var existing = ctx.ShoppingListItems
+            .Where(i => i.UserId == user!.Id && i.IngredientBaseId == ingredientBase.Id)
+            .ToList();
+        ctx.ShoppingListItems.RemoveRange(existing);
+        ctx.SaveChanges();
+
+        ctx.ShoppingListItems.Add(new ShoppingListItem
+        {
+            UserId = user!.Id,
+            IngredientBase = ingredientBase,
+            Measurement = measurementEntity,
+            Amount = parsed!.Value,
+            DisplayAmount = displayAmount,
+            IsAutoAdded = false
+        });
+        ctx.SaveChanges();
+    }
+
+    [Then("{string} displays as a decimal on the shopping list")]
+    public void ThenIngredientDisplaysAsDecimalOnShoppingList(string ingredientName)
+    {
+        var span = _wait.Until(d =>
+        {
+            try
+            {
+                return d.FindElements(By.CssSelector(".item-display[data-name]"))
+                    .FirstOrDefault(s => s.GetAttribute("data-name")
+                        .Contains(ingredientName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        Assert.That(span, Is.Not.Null, $"Item '{ingredientName}' not found on shopping list");
+
+        var input = span!.FindElement(By.XPath("../preceding-sibling::div[1]//input[contains(@class,'qty-input')]"));
+        var value = input.GetAttribute("value") ?? "";
+        Assert.That(value, Does.Contain("."), $"Expected '{ingredientName}' to display as a decimal but got '{value}'");
+        Assert.That(value, Does.Not.Contain("/"), $"Expected '{ingredientName}' not to display as a fraction but got '{value}'");
+    }
+
+    [Then("{string} displays as a fraction on the shopping list")]
+    public void ThenIngredientDisplaysAsFractionOnShoppingList(string ingredientName)
+    {
+        var span = _wait.Until(d =>
+        {
+            try
+            {
+                return d.FindElements(By.CssSelector(".item-display[data-name]"))
+                    .FirstOrDefault(s => s.GetAttribute("data-name")
+                        .Contains(ingredientName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (StaleElementReferenceException) { return null; }
+        });
+        Assert.That(span, Is.Not.Null, $"Item '{ingredientName}' not found on shopping list");
+
+        var input = span!.FindElement(By.XPath("../preceding-sibling::div[1]//input[contains(@class,'qty-input')]"));
+        var value = input.GetAttribute("value") ?? "";
+        Assert.That(value, Does.Contain("/"), $"Expected '{ingredientName}' to display as a fraction but got '{value}'");
     }
 
     [Then("the associated shopping list items are removed from the database")]
