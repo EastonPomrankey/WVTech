@@ -125,30 +125,45 @@ public class FoodEntriesController : Controller
     public async Task<IActionResult> Recipes(int id)
     {
         Recipe? recipe = await _recipeRepository.ReadRecipeWithIngredientsAsync(id);
-        
-        // Get info for external recipe
-        if (!recipe?.ExternalUri.IsNullOrEmpty() ?? false && _externalRecipeService != null)
-        {
-            try
-            {
-                recipe = await _externalRecipeService.GetExternalRecipeByURI(recipe.ExternalUri!);
-                recipe.Id = id;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
-        
-        // Change to not-found view!
+
         if (recipe == null)
-        {
             return RedirectToAction("SearchRecipes");
+
+        if (IsEdamamUri(recipe.ExternalUri))
+        {
+            if (_externalRecipeService != null)
+            {
+                try
+                {
+                    var fresh = await _externalRecipeService.GetExternalRecipeByURI(recipe.ExternalUri!);
+                    if (fresh != null)
+                    {
+                        fresh.Id = id;
+                        recipe = fresh;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            // Falls through to render SingleRecipe with whatever data is available
         }
+        else if (!string.IsNullOrEmpty(recipe.ExternalUri))
+        {
+            // Non-Edamam external recipe stored with a source URL as its ExternalUri.
+            if (!Uri.TryCreate(recipe.ExternalUri, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                TempData["Error"] = "Recipe instructions are unavailable.";
+                return RedirectToAction("SearchRecipes");
+            }
+            return View("ExternalRedirect", recipe.ExternalUri);
+        }
+
         RecipeViewModel viewModel = ViewModelService.RecipeToRecipeVM(recipe);
         viewModel.VotePercentage = await _userRecipeRepository.GetRecipeVotePercentage(id);
-        
-        //if you do not own the recipe
+
         User? user = await _registrationService.FindUserByClaimAsync(User);
         if (user != null)
         {
@@ -156,9 +171,15 @@ public class FoodEntriesController : Controller
             var ownedRecipes = await _userRecipeRepository.GetUserOwnedRecipesByUserIdAsync(user.Id);
             viewModel.IsOwned = ownedRecipes.Any(r => r.Id == id);
         }
-        
+
         return View("SingleRecipe", viewModel);
     }
+
+    private static bool IsEdamamUri(string? uri) =>
+        uri != null && (
+            uri.StartsWith("edamam:", StringComparison.OrdinalIgnoreCase) ||
+            uri.Contains("edamam.com/ontologies/edamam.owl#recipe_", StringComparison.OrdinalIgnoreCase)
+        );
 
     public async Task<IActionResult> AddNewRecipe()
     {

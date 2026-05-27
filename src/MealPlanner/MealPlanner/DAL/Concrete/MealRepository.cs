@@ -221,6 +221,40 @@ public class MealRepository : Repository<Meal>, IMealRepository
             .Where(m => daysInRange.Any(day => MealSchedule.RepeatMatchesDay(m, day)))
             .ToList();
 
+        // Apply exclusions so that "deleted" meals (kept in DB as exclusion records) are
+        // not included in the shopping-list sync, matching the single-day query behaviour.
+        var candidateIds = exactMeals.Select(m => m.Id)
+            .Concat(weeklyMeals.Select(m => m.Id))
+            .ToHashSet();
+
+        var exclusionList = await _context.MealExclusions
+            .Where(e => candidateIds.Contains(e.MealId)
+                     && e.ExclusionDate >= start.Date
+                     && e.ExclusionDate <= end.Date)
+            .ToListAsync();
+
+        var excludedDates = exclusionList
+            .GroupBy(e => e.MealId)
+            .ToDictionary(g => g.Key, g => g.Select(e => e.ExclusionDate.Date).ToHashSet());
+
+        exactMeals = exactMeals
+            .Where(m => !excludedDates.TryGetValue(m.Id, out var dates)
+                     || !dates.Contains(m.StartTime!.Value.Date))
+            .ToList();
+
+        var datesInRange = Enumerable.Range(0, (end.Date - start.Date).Days + 1)
+            .Select(d => start.AddDays(d))
+            .ToList();
+
+        weeklyMeals = weeklyMeals
+            .Where(m =>
+            {
+                if (!excludedDates.TryGetValue(m.Id, out var excluded)) return true;
+                return datesInRange.Any(d =>
+                    MealSchedule.RepeatMatchesDay(m, d.DayOfWeek) && !excluded.Contains(d.Date));
+            })
+            .ToList();
+
         return exactMeals
             .Concat(weeklyMeals)
             .GroupBy(m => m.Id)

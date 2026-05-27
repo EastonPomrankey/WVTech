@@ -36,6 +36,7 @@ public class RecipeViewModel
         Fat = recipe.Fat;
         Tags = recipe.Tags.Select(t => t.Name).ToList();
         ImageUrl = recipe.ImageUrl;
+        SourceUrl = recipe.SourceUrl;
     }
 
     [Required(ErrorMessage = "A recipe needs a name")]
@@ -66,6 +67,7 @@ public class RecipeViewModel
     public UserVoteType UserVote { get; set; } = UserVoteType.NoVote;
     public float? VotePercentage { get; set; }
     public string? ImageUrl { get; set; }
+    public string? SourceUrl { get; set; }
     public IFormFile? ImageFile { get; set; }
     public bool RemoveImage { get; set; } = false;
 }
