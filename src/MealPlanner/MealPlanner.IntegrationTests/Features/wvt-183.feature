@@ -87,3 +87,12 @@ Feature: WVT-183 Ingredient recognition and matching
     When 'Alice' removes her meal containing 'wvt183tahini'
     And 'Alice' syncs her shopping list for today
     Then 'wvt183tahini' appears on the shopping list with amount '1'
+
+  Scenario: Incrementing a quantity does not delete an incompatible manual item
+    Given 'Alice' has 'wvt183kale' with amount '3' and measurement 'Count' on the shopping list
+    And 'Alice' also has 'wvt183kale' with amount '2' and measurement 'Tablespoon' on the shopping list
+    When 'Alice' navigates to the shopping list
+    And 'Alice' increments the quantity of the 'Count' item for 'wvt183kale'
+    And 'Alice' navigates away from the shopping list
+    And 'Alice' navigates to the shopping list
+    Then 'wvt183kale' appears 2 times on the shopping list

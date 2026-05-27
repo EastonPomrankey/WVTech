@@ -285,11 +285,11 @@ public class ShoppingController : Controller
         float? parsedAmount = FractionParser.ParseAmount(request.NewAmount);
         if (parsedAmount == null || parsedAmount.Value <= 0)
             return BadRequest("Invalid amount.");
-        _shoppingListService.UpdateItemAmount(user.Id, request.IngredientBaseId, parsedAmount.Value, request.NewAmount?.Trim());
+        _shoppingListService.UpdateItemAmountById(user.Id, request.ItemId, parsedAmount.Value, request.NewAmount?.Trim());
         return Ok();
     }
 
-    public record UpdateAmountRequest(int IngredientBaseId, string NewAmount);
+    public record UpdateAmountRequest(int ItemId, string NewAmount);
 
     [HttpPost]
     [IgnoreAntiforgeryToken]

@@ -145,6 +145,16 @@ public class ShoppingListRepository : IShoppingListRepository
         _context.SaveChanges();
     }
 
+    public void UpdateAmountById(string userId, int itemId, float newAmount, string? displayAmount = null)
+    {
+        var item = _context.ShoppingListItems
+            .FirstOrDefault(i => i.UserId == userId && i.Id == itemId);
+        if (item == null) return;
+        item.Amount = newAmount;
+        item.DisplayAmount = displayAmount;
+        _context.SaveChanges();
+    }
+
     public HashSet<int> GetDismissedIngredientBaseIds(string userId)
     {
         return _context.DismissedShoppingItems

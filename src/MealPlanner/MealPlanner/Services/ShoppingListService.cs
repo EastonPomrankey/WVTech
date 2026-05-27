@@ -289,6 +289,14 @@ public class ShoppingListService : IShoppingListService
         _shoppingListRepository.UpdateAmountByIngredientBase(userId, ingredientBaseId, newAmount, displayAmount);
     }
 
+    public void UpdateItemAmountById(string userId, int itemId, float newAmount, string? displayAmount = null)
+    {
+        if (newAmount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.");
+
+        _shoppingListRepository.UpdateAmountById(userId, itemId, newAmount, displayAmount);
+    }
+
     public void ClearItems(string userId)
     {
         _shoppingListRepository.ClearAllItems(userId);

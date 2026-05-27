@@ -128,8 +128,7 @@ document.addEventListener("click", async function (e) {
   const btn = e.target.closest(".qty-increment, .qty-decrement");
   if (!btn) return;
   const input = btn.closest(".qty-controls").querySelector(".qty-input");
-  const form = input.closest("form");
-  const ingredientBaseId = parseInt(form.querySelector('[name="ingredientBaseId"]').value);
+  const itemId = parseInt(input.dataset.itemId);
 
   const { numberStr } = parseNumberAndMeasurement(input.value);
   const measurement = input.dataset.measurement;
@@ -167,7 +166,7 @@ document.addEventListener("click", async function (e) {
   await fetch("/Shopping/UpdateItemAmountJson", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ingredientBaseId, newAmount: newNumberStr })
+    body: JSON.stringify({ itemId, newAmount: newNumberStr })
   }).catch(() => {});
 });
 
@@ -188,8 +187,6 @@ document.addEventListener("focusout", async function (e) {
   if (!e.target.matches(".qty-input")) return;
   const input = e.target;
   const { numberStr, measurement } = parseNumberAndMeasurement(input.value);
-  const form = input.closest("form");
-  const ingredientBaseId = parseInt(form.querySelector('[name="ingredientBaseId"]').value);
   const itemId = parseInt(input.dataset.itemId);
 
   // ── Validation ──────────────────────────────────────────────
@@ -225,7 +222,7 @@ document.addEventListener("focusout", async function (e) {
     await fetch("/Shopping/UpdateItemAmountJson", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ingredientBaseId, newAmount: numberStr })
+      body: JSON.stringify({ itemId, newAmount: numberStr })
     }).catch(() => {});
     input.dataset.originalAmount = numberStr;
   }

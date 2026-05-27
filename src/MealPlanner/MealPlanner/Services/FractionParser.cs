@@ -39,7 +39,7 @@ public static class FractionParser
     // Values that round cleanly to 1 decimal place are kept as decimals; others use fractions.
     public static string FormatAmount(float amount)
     {
-        if (amount < 0) return amount.ToString("G", CultureInfo.InvariantCulture);
+        if (amount < 0) return amount.ToString("0.##", CultureInfo.InvariantCulture);
 
         float rounded = MathF.Round(amount);
         if (MathF.Abs(amount - rounded) < Tolerance)
@@ -50,7 +50,7 @@ public static class FractionParser
 
         (int bestNum, int bestDen) = FindBestFraction(fractional);
         if (MathF.Abs(fractional - (float)bestNum / bestDen) > Tolerance)
-            return amount.ToString("G", CultureInfo.InvariantCulture);
+            return amount.ToString("0.##", CultureInfo.InvariantCulture);
 
         string fractionStr = $"{bestNum}/{bestDen}";
         return whole > 0 ? $"{whole} {fractionStr}" : fractionStr;
