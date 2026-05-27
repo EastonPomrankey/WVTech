@@ -12,7 +12,6 @@ public interface IShoppingListService
     void ResolveAutoAddedConflicts(string userId, IEnumerable<int> autoItemIds);
     void ClearItems(string userId);
     void UpdateItemAmount(string userId, int ingredientBaseId, float newAmount, string? displayAmount = null);
-    void UpdateItemAmountById(string userId, int itemId, float newAmount, string? displayAmount = null);
     void ClearMeasurementDeclines(string userId);
     Task SyncFromDateRangeAsync(string userId, User user, DateTime dateFrom, DateTime dateTo);
     Task<string?> UpdateItemMeasurementAsync(string userId, int itemId, string measurementName);

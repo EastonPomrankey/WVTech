@@ -367,65 +367,6 @@ public class WVT183Steps
             .ExecuteScript("return document.readyState").ToString() == "complete");
     }
 
-    [Given("{string} also has {string} with amount {string} and measurement {string} on the shopping list")]
-    public void GivenUserAlsoHasItemOnShoppingList(string userName, string ingredientName, string amountStr, string measurement)
-    {
-        float amount = float.Parse(amountStr, System.Globalization.CultureInfo.InvariantCulture);
-        using var ctx = BDDSetup.CreateContext();
-
-        var user = ctx.Set<User>().FirstOrDefault(u => u.Email == $"{userName}{_emailBase}");
-        Assert.That(user, Is.Not.Null, $"User '{userName}' not found");
-
-        var ingredientBase = ctx.Set<IngredientBase>().FirstOrDefault(b => b.Name == ingredientName)
-            ?? ctx.Set<IngredientBase>().Add(new IngredientBase { Name = ingredientName }).Entity;
-
-        var measurementEntity = ctx.Set<Measurement>().FirstOrDefault(m => m.Name == measurement)
-            ?? ctx.Set<Measurement>().Add(new Measurement { Name = measurement, Abbreviation = measurement }).Entity;
-
-        ctx.SaveChanges();
-
-        ctx.ShoppingListItems.Add(new ShoppingListItem
-        {
-            UserId = user!.Id,
-            IngredientBase = ingredientBase,
-            Measurement = measurementEntity,
-            Amount = amount,
-            IsAutoAdded = false
-        });
-        ctx.SaveChanges();
-    }
-
-    [When("{string} increments the quantity of the {string} item for {string}")]
-    public void WhenUserIncrementsQtyForMeasurementItem(string userName, string unit, string ingredientName)
-    {
-        var incrementBtn = _wait.Until(d =>
-        {
-            try
-            {
-                var rows = d.FindElements(By.CssSelector(".sl-item-row"));
-                foreach (var row in rows)
-                {
-                    try
-                    {
-                        var nameEl = row.FindElement(By.CssSelector(".item-display"));
-                        if (!nameEl.Text.Contains(ingredientName, StringComparison.OrdinalIgnoreCase)) continue;
-                        var qtyInput = row.FindElement(By.CssSelector(".qty-input"));
-                        var meas = qtyInput.GetAttribute("data-measurement") ?? "";
-                        if (!meas.Equals(unit, StringComparison.OrdinalIgnoreCase)) continue;
-                        return row.FindElement(By.CssSelector(".qty-increment"));
-                    }
-                    catch (NoSuchElementException) { continue; }
-                    catch (StaleElementReferenceException) { return null; }
-                }
-                return null;
-            }
-            catch (StaleElementReferenceException) { return null; }
-        });
-        Assert.That(incrementBtn, Is.Not.Null, $"No '{unit}' increment button found for '{ingredientName}'");
-        incrementBtn!.Click();
-        System.Threading.Thread.Sleep(600);
-    }
-
     [When("{string} removes her meal containing {string}")]
     public void WhenUserRemovesMealContaining(string userName, string ingredientName)
     {

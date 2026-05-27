@@ -247,10 +247,7 @@ public class ShoppingListRepository : IShoppingListRepository
         if (item == null || item.UserId != userId) return;
         item.Amount = newAmount;
         item.RecipeContributionAmountInBase = recipeContribution;
-        // Preserve decimal display style if user originally entered a decimal value
-        item.DisplayAmount = item.DisplayAmount?.Contains('.') == true
-            ? newAmount.ToString("0.##", CultureInfo.InvariantCulture)
-            : null;
+        item.DisplayAmount = null;
         _context.SaveChanges();
     }
 
