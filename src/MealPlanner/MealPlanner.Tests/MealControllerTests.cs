@@ -31,6 +31,7 @@ public class MealControllerTests
     private Mock<IRegistrationService> _registrationServiceMock;
     private Mock<IMealRecommendationService> _reccServiceMock;
     private Mock<ITagRepository> _tagRepoMock;
+    private Mock<IShoppingListService> _shoppingListServiceMock;
 
     [SetUp]
     public void SetUp()
@@ -68,6 +69,7 @@ public class MealControllerTests
         _reccServiceMock = new Mock<IMealRecommendationService>();
         _tagRepoMock = new Mock<ITagRepository>();
         _tagRepoMock.Setup(r => r.GetTagsByPopularityAsync()).ReturnsAsync([]);
+        _shoppingListServiceMock = new Mock<IShoppingListService>();
 
         _controller = new MealController(
             _registrationServiceMock.Object,
@@ -75,6 +77,7 @@ public class MealControllerTests
             _mealRepoMock.Object,
             _context,
             _tagRepoMock.Object,
+            _shoppingListServiceMock.Object,
             _reccServiceMock.Object);
 
         _controller.ControllerContext = new ControllerContext

@@ -101,7 +101,7 @@ public class MealController : Controller
 
         var ingredientBaseIds = source.Recipes
             .SelectMany(r => r.Ingredients)
-            .Select(i => i.IngredientBaseId)
+            .Select(i => i.IngredientBase.Id)
             .Distinct();
         _shoppingListService.UnDismissIngredientBases(user.Id, ingredientBaseIds);
 
@@ -197,7 +197,7 @@ public class MealController : Controller
 
         var ingredientBaseIds = newMeal.Recipes
             .SelectMany(r => r.Ingredients)
-            .Select(i => i.IngredientBaseId)
+            .Select(i => i.IngredientBase.Id)
             .Distinct();
         _shoppingListService.UnDismissIngredientBases(user.Id, ingredientBaseIds);
 

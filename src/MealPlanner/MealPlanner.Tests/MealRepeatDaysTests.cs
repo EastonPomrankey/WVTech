@@ -28,6 +28,7 @@ public class MealRepeatDaysTests
     private Mock<IRecipeRepository> _recipeRepoMock;
     private Mock<IRegistrationService> _registrationServiceMock;
     private Mock<ITagRepository> _tagRepoMock;
+    private Mock<IShoppingListService> _shoppingListServiceMock;
     private ClaimsPrincipal _user;
     private User _testUser;
 
@@ -65,12 +66,15 @@ public class MealRepeatDaysTests
 
         var httpContext = new DefaultHttpContext { User = _user };
 
+        _shoppingListServiceMock = new Mock<IShoppingListService>();
+
         _controller = new MealController(
             _registrationServiceMock.Object,
             _recipeRepoMock.Object,
             _mealRepoMock.Object,
             _context,
-            _tagRepoMock.Object);
+            _tagRepoMock.Object,
+            _shoppingListServiceMock.Object);
 
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
